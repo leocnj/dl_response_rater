@@ -8,8 +8,6 @@ cnn_text.py
 
 re-purpose this to use 1D-CNN to classify ASR responses to human rated scores.
 
-
-
 '''
 
 from __future__ import print_function
@@ -22,7 +20,6 @@ from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.embeddings import Embedding
 from keras.layers.convolutional import Convolution1D, MaxPooling1D
 from keras.datasets import imdb
-
 
 # set parameters:
 max_features = 5000
