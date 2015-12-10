@@ -37,7 +37,7 @@ for rev in revs:
 
 df = pd.DataFrame({'label': labels, 'text': texts})
 print(df.head())
-df.to_csv("df.csv")
+df.to_csv(path_or_buf="df.csv")
 
 textraw = df.text.values.tolist()
 textraw = [line.encode('utf-8') for line in textraw]  # keras needs str
