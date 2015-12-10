@@ -1,5 +1,5 @@
 from __future__ import print_function
-
+import sys
 import cPickle
 import pandas as pd
 import numpy as np
@@ -21,7 +21,11 @@ np.random.seed(1337)  # for reproducibility
 
 print
 "loading data..."
-x = cPickle.load(open("data/mr.p", "rb"))
+
+pf = str(sys.argv[1])
+print(pf)
+
+x = cPickle.load(open(pf, "rb"))
 revs, W, W2, word_idx_map, vocab = x[0], x[1], x[2], x[3], x[4]
 print
 "data loaded!"
