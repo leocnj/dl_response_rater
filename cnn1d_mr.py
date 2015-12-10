@@ -27,8 +27,7 @@ print(pf)
 
 x = cPickle.load(open(pf, "rb"))
 revs, W, W2, word_idx_map, vocab = x[0], x[1], x[2], x[3], x[4]
-print
-"data loaded!"
+print("data loaded!")
 
 # focusing on revs.
 texts, labels = [], []
@@ -37,8 +36,7 @@ for rev in revs:
     labels.append(rev["y"])
 
 df = pd.DataFrame({'label': labels, 'text': texts})
-print
-df.head()
+print(df.head())
 
 textraw = df.text.values.tolist()
 textraw = [line.encode('utf-8') for line in textraw]  # keras needs str
@@ -82,7 +80,6 @@ print('X_test shape:', X_test.shape)
 Y_train = np_utils.to_categorical(train_y, nb_classes)
 Y_test = np_utils.to_categorical(test_y, nb_classes)
 
-print('Build model...')
 print('Build model...')
 model = Sequential()
 
