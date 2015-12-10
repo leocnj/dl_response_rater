@@ -44,11 +44,9 @@ test_X, test_y = df2seq(test_csv, nb_words)
 nb_classes = len(np.unique(train_y))
 
 # set parameters:
-maxfeatures = nb_words
-max_features = 5000
-maxlen = 200
+maxlen = 150
 batch_size = 32
-embedding_dims = 100
+embedding_dims = 200
 nb_filter = 100
 filter_length = 5
 hidden_dims = 100
@@ -69,7 +67,7 @@ Y_test = np_utils.to_categorical(test_y, nb_classes)
 print('Build model...')
 model = Sequential()
 
-model.add(Embedding(maxfeatures, embedding_dims, input_length=maxlen))
+model.add(Embedding(nb_words, embedding_dims, input_length=maxlen))
 model.add(Dropout(0.25))
 model.add(Convolution1D(nb_filter=nb_filter,
                         filter_length=filter_length,
@@ -88,4 +86,4 @@ model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
 
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 result = model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
-            validation_split=0.1, show_accuracy=True,callbacks=[earlystop])
+            validation_split=0.1, show_accuracy=True, callbacks=[earlystop])
