@@ -44,9 +44,9 @@ test_X, test_y = df2seq(test_csv, nb_words)
 nb_classes = len(np.unique(train_y))
 
 # set parameters:
-maxlen = 150
+maxlen = 200
 batch_size = 32
-embedding_dims = 200
+embedding_dims = 100
 nb_filter = 100
 filter_length = 5
 hidden_dims = 100
