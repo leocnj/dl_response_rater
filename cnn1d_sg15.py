@@ -82,7 +82,8 @@ model.add(Dropout(0.25))
 model.add(Activation('relu'))
 model.add(Dense(nb_classes))
 model.add(Activation('softmax'))
-model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+#model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+model.compile(loss='mean_squared_error', optimizer='sgd')
 
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 result = model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
