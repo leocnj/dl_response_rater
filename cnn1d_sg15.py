@@ -38,7 +38,7 @@ test_csv = pd.read_csv('data/test.csv')
 
 print(train_csv.head())
 
-nb_words = 20000
+nb_words = 50000
 train_X, train_y = df2seq(train_csv, nb_words)
 test_X, test_y = df2seq(test_csv, nb_words)
 nb_classes = len(np.unique(train_y))
