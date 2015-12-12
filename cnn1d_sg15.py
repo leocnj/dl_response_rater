@@ -52,8 +52,8 @@ nb_classes = len(np.unique(train_y))
 """
 maxlen = 1000 #
 batch_size = 32
-embedding_dims = 100
-nb_filter = 100
+embedding_dims = 50
+nb_filter = 50
 filter_length = 5
 hidden_dims = 100
 nb_epoch = 20
