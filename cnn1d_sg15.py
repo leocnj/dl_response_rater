@@ -44,7 +44,13 @@ test_X, test_y = df2seq(test_csv, nb_words)
 nb_classes = len(np.unique(train_y))
 
 # set parameters:
-maxlen = 200
+
+"""
+> summary(nchar(test$txt))
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+   31.0   470.0   576.0   577.5   693.0  1011.0
+"""
+maxlen = 1000 #
 batch_size = 32
 embedding_dims = 100
 nb_filter = 100
@@ -82,8 +88,8 @@ model.add(Dropout(0.25))
 model.add(Activation('relu'))
 model.add(Dense(nb_classes))
 model.add(Activation('softmax'))
-#model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
-model.compile(loss='mean_squared_error', optimizer='sgd')
+model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+#model.compile(loss='mean_squared_error', optimizer='sgd')
 
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 result = model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
