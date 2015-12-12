@@ -87,3 +87,8 @@ model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 result = model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
             validation_split=0.1, show_accuracy=True, callbacks=[earlystop])
+
+score = model.evaluate(X_test, Y_test, batch_size=batch_size, verbose=1, show_accuracy=True)
+
+print('Test score:', score[0])
+print('Test accuracy:', score[1])
