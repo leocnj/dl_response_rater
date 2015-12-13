@@ -30,7 +30,7 @@ def df2seq(df, nb_words):
     return(text_seq, df.score.values)
 
 
-np.random.seed(1337)  # for reproducibility
+np.random.seed(75513)  # for reproducibility
 
 # load csv to PD
 train_csv = pd.read_csv('data/train.csv')
@@ -90,7 +90,7 @@ model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
 
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 result = model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
-            validation_split=0.1, show_accuracy=True, callbacks=[earlystop])
+            validation_split=0.2, show_accuracy=True, callbacks=[earlystop])
 
 score = model.evaluate(X_test, Y_test, batch_size=batch_size, verbose=1, show_accuracy=True)
 
