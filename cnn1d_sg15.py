@@ -52,7 +52,7 @@ nb_filter = 100
 filter_length = 3
 hidden_dims = 100
 nb_epoch = 20
-pool_length = maxlen - filter_length + 1 # max over time
+pool_length = maxlen/2  - filter_length + 1 # max over time
 
 # padding
 
@@ -70,12 +70,21 @@ model = Sequential()
 
 model.add(Embedding(nb_words, embedding_dims, input_length=maxlen))
 model.add(Dropout(0.25))
+
+# 1st conv
 model.add(Convolution1D(nb_filter=nb_filter,
                         filter_length=filter_length,
                         border_mode="valid",
                         activation="relu"))
+model.add(MaxPooling1D(pool_length=2)) # half
 
+# 2nd conv
+model.add(Convolution1D(nb_filter=nb_filter,
+                        filter_length=filter_length,
+                        border_mode="valid",
+                        activation="relu"))
 model.add(MaxPooling1D(pool_length=pool_length))
+
 model.add(Flatten())
 
 model.add(Dense(hidden_dims))
