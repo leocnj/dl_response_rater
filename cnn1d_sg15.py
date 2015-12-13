@@ -38,9 +38,9 @@ test_csv = pd.read_csv('data/test.csv')
 
 print(train_csv.head())
 
-nb_words = 50000
+nb_words = 5000
 train_X, train_y = df2seq(train_csv, nb_words)
-test_X, test_y = df2seq(test_csv, nb_words)
+test_X, test_y   = df2seq(test_csv, nb_words)
 nb_classes = len(np.unique(train_y))
 
 # set parameters:
@@ -58,12 +58,12 @@ pool_length = maxlen - filter_length + 1 # max over time
 
 print("Pad sequences (samples x time)")
 X_train = sequence.pad_sequences(train_X, maxlen=maxlen, padding='post', truncating='post')
-X_test = sequence.pad_sequences(test_X, maxlen=maxlen, padding='post', truncating='post')
+X_test  = sequence.pad_sequences(test_X, maxlen=maxlen, padding='post', truncating='post')
 print('X_train shape:', X_train.shape)
 print('X_test shape:', X_test.shape)
 
 Y_train = np_utils.to_categorical(train_y, nb_classes)
-Y_test = np_utils.to_categorical(test_y, nb_classes)
+Y_test  = np_utils.to_categorical(test_y, nb_classes)
 
 print('Build model...')
 model = Sequential()
@@ -81,8 +81,10 @@ model.add(Flatten())
 model.add(Dense(hidden_dims))
 model.add(Dropout(0.25))
 model.add(Activation('relu'))
+
 model.add(Dense(nb_classes))
 model.add(Activation('softmax'))
+
 model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
 #model.compile(loss='mean_squared_error', optimizer='sgd')
 
