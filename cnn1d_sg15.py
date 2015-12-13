@@ -45,19 +45,14 @@ nb_classes = len(np.unique(train_y))
 
 # set parameters:
 
-"""
-> summary(nchar(test$txt))
-   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
-   31.0   470.0   576.0   577.5   693.0  1011.0
-"""
-maxlen = 1000 #
+maxlen = 200 #
 batch_size = 32
-embedding_dims = 50
-nb_filter = 50
+embedding_dims = 300
+nb_filter = 100
 filter_length = 5
 hidden_dims = 100
 nb_epoch = 20
-pool_length = 10
+pool_length = maxlen - filter_length + 1 # max over time
 
 # padding
 
@@ -88,8 +83,8 @@ model.add(Dropout(0.25))
 model.add(Activation('relu'))
 model.add(Dense(nb_classes))
 model.add(Activation('softmax'))
-#model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
-model.compile(loss='mean_squared_error', optimizer='sgd')
+model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+#model.compile(loss='mean_squared_error', optimizer='sgd')
 
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 result = model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
