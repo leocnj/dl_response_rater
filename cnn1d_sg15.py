@@ -76,6 +76,8 @@ model.add(Convolution1D(nb_filter=nb_filter,
                         activation="relu"))
 
 model.add(MaxPooling1D(pool_length=pool_length))
+# LSTM
+model.add(LSTM(100))
 model.add(Flatten())
 
 model.add(Dense(hidden_dims))
