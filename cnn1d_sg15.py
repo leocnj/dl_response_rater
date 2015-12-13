@@ -8,6 +8,7 @@ from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.embeddings import Embedding
 from keras.layers.convolutional import Convolution1D, MaxPooling1D
+from keras.layers.recurrent  import SimpleRNN, GRU, LSTM
 from keras.preprocessing.text import Tokenizer
 from keras.callbacks import EarlyStopping
 from keras.utils import np_utils
