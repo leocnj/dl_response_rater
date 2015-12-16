@@ -78,13 +78,13 @@ model.add(Convolution1D(nb_filter=nb_filter,
                         filter_length=filter_length,
                         border_mode="valid",
                         activation="relu"))
-model.add(MaxPooling1D(pool_length=2, stride=2))
+model.add(MaxPooling1D(pool_length=2))
 # CNN-2
 model.add(Convolution1D(nb_filter=nb_filter,
                         filter_length=filter_length,
                         border_mode="valid",
                         activation="relu"))
-model.add(MaxPooling1D(pool_length=pool_length))
+model.add(MaxPooling1D(pool_length=2))
 
 model.add(Flatten())
 
@@ -95,7 +95,7 @@ model.add(Activation('relu'))
 model.add(Dense(nb_classes))
 model.add(Activation('softmax'))
 
-model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+model.compile(loss='categorical_crossentropy', optimizer='adadelta')
 #model.compile(loss='mean_squared_error', optimizer='sgd')
 
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
