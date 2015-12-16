@@ -85,6 +85,12 @@ model.add(Convolution1D(nb_filter=nb_filter,
                         border_mode="valid",
                         activation="relu"))
 model.add(MaxPooling1D(pool_length=2))
+# CNN-3
+model.add(Convolution1D(nb_filter=nb_filter,
+                        filter_length=filter_length,
+                        border_mode="valid",
+                        activation="relu"))
+model.add(MaxPooling1D(pool_length=2))
 
 model.add(Flatten())
 
