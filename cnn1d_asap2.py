@@ -53,7 +53,7 @@ nb_filter = 100
 filter_length = 3
 hidden_dims = 100
 nb_epoch = 20
-pool_length = maxlen/2 - filter_length + 1 # max over time
+pool_length = maxlen - filter_length + 1  # max over time
 
 # padding
 
@@ -76,7 +76,8 @@ model.add(Convolution1D(nb_filter=nb_filter,
                         filter_length=filter_length,
                         border_mode="valid",
                         activation="relu"))
-model.add(MaxPooling1D(pool_length=2))
+
+model.add(MaxPooling1D(pool_length=pool_length))
 
 model.add(Flatten())
 model.add(Dense(hidden_dims))
@@ -91,7 +92,7 @@ model.compile(loss='categorical_crossentropy', optimizer='adadelta')
 
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 result = model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
-            validation_split=0.2, show_accuracy=True, callbacks=[earlystop])
+            validation_split=0.1, show_accuracy=True, callbacks=[earlystop])
 
 score = model.evaluate(X_test, Y_test, batch_size=batch_size, verbose=1, show_accuracy=True)
 

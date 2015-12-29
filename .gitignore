@@ -8,3 +8,5 @@ data/mr.p
 *.txt
 
 *.bin
+
+*.pyc
