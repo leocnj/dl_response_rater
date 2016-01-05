@@ -22,7 +22,6 @@ to do 1d-CNN sentiment detection on the mr data.
   w2vembd using word2vec pre-trained embd (dim=300)
   selfembd training an embd directl from data, vocab_size (5000) and embd_dim (100)
 - 1d-CNN and then Max-Over-Time (MOT)
--
 
 """
 
@@ -68,9 +67,9 @@ def df_2_3dtensor(df, maxlen):
     print("loaded Google word2vec")
 
     X_train = sents_3dtensor(train_X, maxlen, w2v)
-    X_test = sents_3dtensor(test_X, maxlen, w2v)
+    X_test  = sents_3dtensor(test_X, maxlen, w2v)
     Y_train = np_utils.to_categorical(train_y, nb_classes)
-    Y_test = np_utils.to_categorical(test_y, nb_classes)
+    Y_test  = np_utils.to_categorical(test_y, nb_classes)
 
     print('tensor shape: ', X_train.shape)
     return (X_train, Y_train, X_test, Y_test, nb_classes)
@@ -112,49 +111,34 @@ def df_2_embd(df, maxlen, vocab_size):
     return (X_train, Y_train, X_test, Y_test, nb_classes)
 
 
-def cnn1d_mot(df, maxlen, type, vocab_size, embd_dim,
-              nb_filter, filter_length, hidden_dims, batch_size, nb_epoch):
+
+def cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                  maxlen,
+                  nb_filter, filter_length, hidden_dims, batch_size, nb_epoch, optm):
     """
-    - CNN-1d on 3d sensor
+    - CNN-1d on 3d sensor which uses word2vec embedding
     - MOT
     - fully-connected model
 
-    :param df DF containing entire data set
+    :param <X, Y> train and test sets
+    :param nb_classes # of classes
     :param maxlen max of n char in a sentence
-    :param type w2vembd vs. selfembd
-    :param vocab_size
-    :param embd_dim
     :param nb_filter
     :param filter_length
     :param hidden_dims
     :param batch_size
     :param nb_epoch
+    :param optm
     :return:
     """
     pool_length = maxlen - filter_length + 1
 
     model = Sequential()
 
-    if (type == 'w2vembd'):
-        X_train, Y_train, X_test, Y_test, nb_classes = df_2_3dtensor(df, maxlen)
-        model.add(Convolution1D(nb_filter=nb_filter,
-                                filter_length=filter_length,
-                                border_mode="valid",
-                                activation="relu", input_shape=(maxlen, 300)))
-        model.add(Dropout(0.25))
-    elif (type == 'selfembd'):
-        X_train, Y_train, X_test, Y_test, nb_classes = df_2_embd(df, maxlen, vocab_size)
-        model.add(Embedding(vocab_size, embd_dim, input_length=maxlen))
-        model.add(Dropout(0.25))
-        model.add(Convolution1D(nb_filter=nb_filter,
-                                filter_length=filter_length,
-                                border_mode="valid",
-                                activation="relu"))
-    else:
-        print('wrong type %s', type)
-        pass
-
-    # max-over-time (mot)
+    model.add(Convolution1D(nb_filter=nb_filter,
+                            filter_length=filter_length,
+                            border_mode="valid",
+                            activation="relu", input_shape=(maxlen, 300)))
     model.add(MaxPooling1D(pool_length=pool_length))
 
     model.add(Flatten())
@@ -163,7 +147,7 @@ def cnn1d_mot(df, maxlen, type, vocab_size, embd_dim,
     model.add(Activation('relu'))
     model.add(Dense(nb_classes))
     model.add(Activation('softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+    model.compile(loss='categorical_crossentropy', optimizer=optm)
 
     earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 
@@ -175,19 +159,79 @@ def cnn1d_mot(df, maxlen, type, vocab_size, embd_dim,
     print('Test accuracy:', score[1])
 
 
-def test_mr_w2vembd():
-    maxlen = 100
-    pd = load_pd('data/mr.p')
-    cnn1d_mot(pd, maxlen, 'w2vembd', 0, 0, 100, 5, 100, 32, 20)
+def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                   maxlen, vocab_size, embd_dim,
+                   nb_filter, filter_length, hidden_dims, batch_size, nb_epoch, optm):
+    """
+    - CNN-1d on text input (represented in int)
+    - MOT
+    - fully-connected model
+
+    :param <X, Y> train and test sets
+    :param nb_classes # of classes
+    :param maxlen max of n char in a sentence
+    :param vocab_size
+    :param embd_dim
+    :param nb_filter
+    :param filter_length
+    :param hidden_dims
+    :param batch_size
+    :param nb_epoch
+    :param optm optimizer options, e.g., adam, rmsprop, etc.
+    :return:
+    """
+    pool_length = maxlen - filter_length + 1
+
+    model = Sequential()
+    model.add(Embedding(vocab_size, embd_dim, input_length=maxlen))
+    model.add(Dropout(0.25))
+
+    model.add(Convolution1D(nb_filter=nb_filter,
+                            filter_length=filter_length,
+                            border_mode="valid",
+                            activation="relu"))
+    model.add(MaxPooling1D(pool_length=pool_length))
+
+    model.add(Flatten())
+    model.add(Dense(hidden_dims))
+    model.add(Dropout(0.5))
+    model.add(Activation('relu'))
+    model.add(Dense(nb_classes))
+    model.add(Activation('softmax'))
+    model.compile(loss='categorical_crossentropy', optimizer=optm)
+
+    earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
+
+    model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
+              validation_split=0.1, show_accuracy=True, callbacks=[earlystop])
+
+    score = model.evaluate(X_test, Y_test, batch_size=batch_size, verbose=1, show_accuracy=True)
+    print('Test score:', score[0])
+    print('Test accuracy:', score[1])
 
 
-def test_mr_selfembd():
+def test_mr_3():
     maxlen = 100
-    pd = load_pd('data/mr.p')
-    cnn1d_mot(pd, maxlen, 'selfembd', 5000, 100, 100, 5, 100, 32, 20)
+    vocab_size = 20000
+    embd_dim = 100
+    X_train, Y_train, X_test, Y_test, nb_classes = df_2_embd(load_pd('data/mr.p'), maxlen, vocab_size)
+    cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                   maxlen, vocab_size, embd_dim,
+                   100, 5, 100, 32, 20, 'adadelta')
+
+def test_mr_4():
+    maxlen = 100
+    X_train, Y_train, X_test, Y_test, nb_classes = df_2_3dtensor(load_pd('data/mr.p'), maxlen)
+    cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                   maxlen,
+                   100, 5, 100, 32, 20, 'adam') # only adam can move ACC to about 70%.
 
 
 if __name__ == "__main__":
-    test_mr_selfembd()
+    # test_mr_selfembd()
+    #
+    # five epoch, each 5 sec (CPU version will be 450 sec), ACC is 75.75%
+    #
     print('='*50)
-    test_mr_w2vembd()
+    # test_mr_w2vembd()
+    test_mr_4()

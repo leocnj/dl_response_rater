@@ -60,7 +60,6 @@ from sklearn.cross_validation import train_test_split
 train_X, test_X, train_y, test_y = train_test_split(text_seq, y, train_size=0.8, random_state=1)
 
 # set parameters:
-max_features = 5000
 maxlen = 100
 batch_size = 32
 embedding_dims = 100
