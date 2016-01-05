@@ -3,6 +3,7 @@ import sys
 
 import pandas as pd
 import numpy as np
+
 from keras.preprocessing import sequence
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
@@ -10,16 +11,11 @@ from keras.layers.embeddings import Embedding
 from keras.layers.convolutional import Convolution1D, MaxPooling1D
 from keras.callbacks import EarlyStopping
 
-from data_util import load_pd, df_2_embd, df_2_3dtensor, load_asap
+from data_util import load_asap, load_sg15, load_mr
 
 """
-following https://gist.github.com/xccds/8f0e5b0fe4eb6193261d
-to do 1d-CNN sentiment detection on the mr data.
-
-- depending on type
-  w2vembd using word2vec pre-trained embd (dim=300)
-  selfembd training an embd directl from data, vocab_size (5000) and embd_dim (100)
-- 1d-CNN and then Max-Over-Time (MOT)
+   following https://gist.github.com/xccds/8f0e5b0fe4eb6193261d
+   to do 1d-CNN on different text classification tasks
 
 """
 
@@ -122,27 +118,40 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
 
 
 def test_mr_embd():
-    maxlen = 100
-    vocab_size = 20000
+    nb_words = 20000
+    maxlen = 200
     embd_dim = 100
-    X_train, Y_train, X_test, Y_test, nb_classes = df_2_embd(load_pd('data/mr.p'), maxlen, vocab_size)
+    X_train, Y_train, X_test, Y_test, nb_classes = load_mr('self', nb_words, maxlen)
     cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
-                   maxlen, vocab_size, embd_dim,
-                   100, 5, 100, 32, 20, 'adadelta')
+                   maxlen, nb_words, embd_dim,
+                   100, 5, 100, 32, 20, 'rmsprop')
+
+def test_asap():
+    nb_words = 20000
+    maxlen = 200
+    embd_dim = 100
+    X_train, Y_train, X_test, Y_test, nb_classes = load_asap(nb_words, maxlen)
+    cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                   maxlen, nb_words, embd_dim,
+                   100, 5, 100, 32, 20, 'rmsprop')
 
 def test_mr_w2v():
-    maxlen = 100
-    X_train, Y_train, X_test, Y_test, nb_classes = df_2_3dtensor(load_pd('data/mr.p'), maxlen)
+    maxlen = 200
+    X_train, Y_train, X_test, Y_test, nb_classes = load_mr('w2v', NULL, maxlen)
     cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen,
                    100, 5, 100, 32, 20, 'adam') # only adam can move ACC to about 70%.
 
 
 if __name__ == "__main__":
-    # test_mr_selfembd()
-    #
-    # five epoch, each 5 sec (CPU version will be 450 sec), ACC is 75.75%
-    #
     print('='*50)
-    # test_mr_embd()
-    test_mr_w2v()
+    print('mr self')
+    test_mr_embd()
+
+    print('='*50)
+    print('mr w2v')
+    # test_mr_w2v()
+
+    print('='*50)
+    print('asap self')
+    test_asap()

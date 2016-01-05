@@ -69,31 +69,25 @@ def load_csvs(traincsv, testcsv, nb_words, maxlen):
     return(X_train, Y_train, X_test, Y_test, nb_classes)
 
 
-def load_asap():
-    nb_words = 5000
-    maxlen = 200
+def load_asap(nb_words=10000, maxlen=200):
     X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('../asap_sas/set1_train.csv',
                                                              '../asap_sas/set1_train.csv',
                                                              nb_words, maxlen)
     return(X_train, Y_train, X_test, Y_test, nb_classes)
 
 
-def load_sg15():
-    nb_words = 5000
-    maxlen = 250
+def load_sg15(nb_words=10000, maxlen=200):
     X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/train.csv',
                                                              'data/test.csv',
                                                              nb_words, maxlen)
     return(X_train, Y_train, X_test, Y_test, nb_classes)
 
 
-def load_mr(embd_type):
+def load_mr(embd_type='self', nb_words=20000, maxlen=200):
     """
     :param embd_type: self vs. w2v
     :return:
     """
-    maxlen = 200
-    nb_words = 20000
     seed = 75513
     train_size = 0.8
 
@@ -104,17 +98,18 @@ def load_mr(embd_type):
     train_X, test_X, train_y, test_y = train_test_split(df.text.values.tolist(),
                                                         df.label.values,
                                                         train_size=train_size, random_state=1)
+    nb_classes = len(np.unique(train_y))
+    Y_train = np_utils.to_categorical(train_y, nb_classes)
+    Y_test  = np_utils.to_categorical(test_y, nb_classes)
+
     if(embd_type == 'self'):
         X_train = xcol_nninput_embd(train_X, nb_words, maxlen)
         X_test  = xcol_nninput_embd(test_X,  nb_words, maxlen)
     elif(embd_type == 'w2v'):
         w2v = load_w2v('data/Google_w2v.bin')
         print("loaded Google word2vec")
-        nb_classes = len(np.unique(train_y))
         X_train = sents_3dtensor(train_X, maxlen, w2v)
         X_test  = sents_3dtensor(test_X, maxlen, w2v)
-        Y_train = np_utils.to_categorical(train_y, nb_classes)
-        Y_test  = np_utils.to_categorical(test_y, nb_classes)
     else:
         print('wrong embd_type')
 
