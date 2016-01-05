@@ -1,8 +1,16 @@
 """
-sent_w2v.py
+sent_op.py
+
+contains sentence level op
+
+Regarding using word2vec embedding
 
 - loading pre-trained |dim|=300 Google word2vec
 - for a sentence, get its w2v representation [max_len x 300]
+
+Regarding training an embedding directly from data
+
+- tokenrize a char-string to int-string
 
 """
 from gensim.models.word2vec import Word2Vec
@@ -46,6 +54,7 @@ def sents_3dtensor(sents, max_len, w2v):
         i += 1
     return(tensor_3d)
 
+
 def main():
     w2v = load_w2v('data/Google_w2v.bin')
 
@@ -54,7 +63,6 @@ def main():
 
     out2 = sents_3dtensor(('this is cool', 'that is bad'), 10, w2v)
     print(out2)
-
 
 if __name__=="__main__":
     main()
