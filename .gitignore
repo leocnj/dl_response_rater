@@ -3,10 +3,11 @@ data/mr.p
 
 *.tar
 
-*.csv
 
 *.txt
 
 *.bin
 
 *.pyc
+
+df.csv
