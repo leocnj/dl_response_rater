@@ -92,7 +92,7 @@ def load_asap(nb_words=10000, maxlen=200, embd_type='self'):
 
 
 def load_sg15(nb_words=10000, maxlen=200, embd_type='self'):
-    X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/train.csv',
+    X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/sg15_train.csv',
                                                              'data/test.csv',
                                                              nb_words, maxlen, embd_type)
     return(X_train, Y_train, X_test, Y_test, nb_classes)

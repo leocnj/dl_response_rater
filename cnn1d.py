@@ -11,6 +11,7 @@ from keras.layers.embeddings import Embedding
 from keras.layers.convolutional import Convolution1D, MaxPooling1D
 from keras.callbacks import EarlyStopping
 from keras.utils import np_utils
+from keras.layers.recurrent  import SimpleRNN, GRU, LSTM
 
 from data_util import load_asap, load_sg15, load_mr
 
@@ -107,6 +108,9 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                             activation="relu"))
     model.add(MaxPooling1D(pool_length=pool_length))
 
+    #
+    model.add(LSTM(100))
+
     model.add(Flatten())
     model.add(Dense(hidden_dims))
     model.add(Dropout(0.5))
@@ -115,7 +119,7 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     model.add(Activation('softmax'))
     model.compile(loss='categorical_crossentropy', optimizer=optm)
 
-    earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
+    earlystop = EarlyStopping(monitor='val_loss', patience=2, verbose=1)
 
     model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
               validation_split=0.1, show_accuracy=True, callbacks=[earlystop])
@@ -155,7 +159,7 @@ def test_sg15():
     X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(nb_words, maxlen, 'self')
     cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen, nb_words, embd_dim,
-                   100, 5, 100, 32, 20, 'rmsprop')
+                   100, 5, 100, 32, 20, 'adadelta')
 
 def test_sg15_w2v():
     maxlen = 250
@@ -163,7 +167,7 @@ def test_sg15_w2v():
     X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(0, maxlen, 'w2v')
     cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen,
-                   100, 5, 100, 32, 20, 'rmsprop')
+                   100, 3, 100, 32, 20, 'rmsprop')
 
 
 def test_mr_w2v():
@@ -181,13 +185,13 @@ if __name__ == "__main__":
 
     print('='*50)
     print('sg15 w2v')
-    test_sg15_w2v()
+    test_sg15()
 
 
     print('='*50)
     print('asap self')
-    test_asap()
+    #test_asap()
 
     print('='*50)
     print('mr word2vec')
-    test_mr_w2v()
+    #test_mr_w2v()
