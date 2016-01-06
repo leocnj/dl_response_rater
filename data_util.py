@@ -26,6 +26,11 @@ def xcol_nninput_embd(textlist, nb_words, maxlen):
     token = Tokenizer(nb_words=nb_words)
     token.fit_on_texts(textraw)
     xseq = token.texts_to_sequences(textraw)
+
+    # stat about textlist
+    print('nb_words: ',len(token.word_counts))
+    print('maxlen: ',np.max([len(x) for x in xseq]))
+
     # padding
     xseq_padded = sequence.pad_sequences(xseq, maxlen=maxlen, padding='post', truncating='post')
     return(xseq_padded)
@@ -71,7 +76,7 @@ def load_csvs(traincsv, testcsv, nb_words, maxlen):
 
 def load_asap(nb_words=10000, maxlen=200):
     X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('../asap_sas/set1_train.csv',
-                                                             '../asap_sas/set1_train.csv',
+                                                             '../asap_sas/set1_test.csv',
                                                              nb_words, maxlen)
     return(X_train, Y_train, X_test, Y_test, nb_classes)
 
@@ -83,12 +88,12 @@ def load_sg15(nb_words=10000, maxlen=200):
     return(X_train, Y_train, X_test, Y_test, nb_classes)
 
 
-def load_mr(embd_type='self', nb_words=20000, maxlen=200):
+def load_mr(embd_type='self', nb_words=20000, maxlen=64):
     """
     :param embd_type: self vs. w2v
     :return:
     """
-    seed = 75513
+    seed = 1337
     train_size = 0.8
 
     df = pickled2df('data/mr.p')
