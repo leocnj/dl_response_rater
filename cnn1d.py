@@ -134,6 +134,57 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     print('Test accuracy:', acc)
 
 
+def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                   maxlen, vocab_size, embd_dim,
+                   nb_filter, filter_length, hidden_dims, batch_size, nb_epoch, optm):
+    """
+    - LSTM  on text input (represented in int)
+    - fully-connected model
+
+    :param <X, Y> train and test sets
+    :param nb_classes # of classes
+    :param maxlen max of n char in a sentence
+    :param vocab_size
+    :param embd_dim
+    :param nb_filter
+    :param filter_length
+    :param hidden_dims
+    :param batch_size
+    :param nb_epoch
+    :param optm optimizer options, e.g., adam, rmsprop, etc.
+    :return:
+    """
+    pool_length = maxlen - filter_length + 1
+
+    model = Sequential()
+    model.add(Embedding(vocab_size, embd_dim, input_length=maxlen))
+    model.add(Dropout(0.25))
+
+    model.add(LSTM(100))
+
+    model.add(Flatten())
+    model.add(Dense(hidden_dims))
+    model.add(Dropout(0.5))
+    model.add(Activation('relu'))
+    model.add(Dense(nb_classes))
+    model.add(Activation('softmax'))
+    model.compile(loss='categorical_crossentropy', optimizer=optm)
+
+    earlystop = EarlyStopping(monitor='val_loss', patience=2, verbose=1)
+
+    model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
+              validation_split=0.1, show_accuracy=True, callbacks=[earlystop])
+
+    score = earlystop.model.evaluate(X_test, Y_test, batch_size=batch_size)
+    # earlystop only returns one score val. 1/6/2016
+    # score = model.evaluate(X_test, Y_test, batch_size=batch_size, verbose=1, show_accuracy=True)
+    print('Test score:', score)
+    # print('Test accuracy:', score[1])
+    classes = earlystop.model.predict_classes(X_test, batch_size=batch_size)
+    acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test)) # accuracy only supports classes
+    print('Test accuracy:', acc)
+
+
 def test_mr_embd():
     nb_words = 20000
     maxlen = 64
@@ -157,7 +208,7 @@ def test_sg15():
     maxlen = 250
     embd_dim = 100
     X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(nb_words, maxlen, 'self')
-    cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
+    lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen, nb_words, embd_dim,
                    100, 5, 100, 32, 20, 'adadelta')
 
