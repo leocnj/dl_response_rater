@@ -53,15 +53,14 @@ def pickled2df(pickfile):
     df = pd.DataFrame({'label': labels, 'text': texts})
     return df
 
-def load_csvs(traincsv, testcsv, nb_words, maxlen):
+def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type):
 
     train_df = pd.read_csv(traincsv)
     test_df = pd.read_csv(testcsv)
     print(train_df.head())
 
-    X_train = xcol_nninput_embd(train_df.text.values.tolist(), nb_words, maxlen)
-    X_test  = xcol_nninput_embd(test_df.text.values.tolist(), nb_words, maxlen)
-
+    train_X = train_df.text.values.tolist()
+    test_X = test_df.text.values.tolist()
     train_y = train_df.label.values
     test_y  = test_df.label.values
 
@@ -69,26 +68,37 @@ def load_csvs(traincsv, testcsv, nb_words, maxlen):
     Y_train = np_utils.to_categorical(train_y, nb_classes)
     Y_test = np_utils.to_categorical(test_y, nb_classes)
 
+    if(embd_type == 'self'):
+        X_train = xcol_nninput_embd(train_X, nb_words, maxlen)
+        X_test  = xcol_nninput_embd(test_X, nb_words, maxlen)
+    elif(embd_type == 'w2v'):
+        w2v = load_w2v('data/Google_w2v.bin')
+        print("loaded Google word2vec")
+        X_train = sents_3dtensor(train_X, maxlen, w2v)
+        X_test  = sents_3dtensor(test_X, maxlen, w2v)
+    else:
+        print('wrong embd_type')
+
     print('X tensor shape: ', X_train.shape)
     print('Y tensor shape: ', Y_train.shape)
     return(X_train, Y_train, X_test, Y_test, nb_classes)
 
 
-def load_asap(nb_words=10000, maxlen=200):
+def load_asap(nb_words=10000, maxlen=200, embd_type='self'):
     X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('../asap_sas/set1_train.csv',
                                                              '../asap_sas/set1_test.csv',
-                                                             nb_words, maxlen)
+                                                             nb_words, maxlen, embd_type)
     return(X_train, Y_train, X_test, Y_test, nb_classes)
 
 
-def load_sg15(nb_words=10000, maxlen=200):
+def load_sg15(nb_words=10000, maxlen=200, embd_type='self'):
     X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/train.csv',
                                                              'data/test.csv',
-                                                             nb_words, maxlen)
+                                                             nb_words, maxlen, embd_type)
     return(X_train, Y_train, X_test, Y_test, nb_classes)
 
 
-def load_mr(embd_type='self', nb_words=20000, maxlen=64):
+def load_mr(nb_words=20000, maxlen=64, embd_type='self'):
     """
     :param embd_type: self vs. w2v
     :return:

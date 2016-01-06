@@ -143,7 +143,7 @@ def test_asap():
     nb_words = 5000
     maxlen = 150
     embd_dim = 100
-    X_train, Y_train, X_test, Y_test, nb_classes = load_asap(nb_words, maxlen)
+    X_train, Y_train, X_test, Y_test, nb_classes = load_asap(nb_words, maxlen, 'self')
     cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen, nb_words, embd_dim,
                    100, 5, 100, 32, 20, 'rmsprop')
@@ -152,15 +152,23 @@ def test_sg15():
     nb_words = 10000 # for NNS speakers, should be sufficient
     maxlen = 250
     embd_dim = 100
-    X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(nb_words, maxlen)
+    X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(nb_words, maxlen, 'self')
     cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen, nb_words, embd_dim,
+                   100, 5, 100, 32, 20, 'rmsprop')
+
+def test_sg15_w2v():
+    maxlen = 250
+    # embd_dim = 100
+    X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(0, maxlen, 'w2v')
+    cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                   maxlen,
                    100, 5, 100, 32, 20, 'rmsprop')
 
 
 def test_mr_w2v():
     maxlen = 64
-    X_train, Y_train, X_test, Y_test, nb_classes = load_mr('w2v', 0, maxlen)
+    X_train, Y_train, X_test, Y_test, nb_classes = load_mr(0, maxlen, 'w2v')
     cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen,
                    100, 5, 100, 32, 20, 'adam') # only adam can move ACC to about 70%.
@@ -172,8 +180,9 @@ if __name__ == "__main__":
     #test_mr_embd()
 
     print('='*50)
-    print('sg15 self')
-    test_sg15()
+    print('sg15 w2v')
+    test_sg15_w2v()
+
 
     print('='*50)
     print('asap self')
