@@ -201,7 +201,7 @@ def test_asap():
                    maxlen, nb_words, embd_dim,
                    100, 5, 100, 32, 20, 'rmsprop')
 
-def test_sg15():
+def test_sg15_lstm():
     nb_words = 10000 # for NNS speakers, should be sufficient
     maxlen = 200
     embd_dim = 50
@@ -209,6 +209,16 @@ def test_sg15():
     lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen, nb_words, embd_dim,
                    50, 32, 20, 'adadelta')
+
+
+def test_sg15():
+    nb_words = 10000
+    maxlen = 200
+    embd_dim = 50
+    X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(nb_words, maxlen, 'self')
+    cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                   maxlen, nb_words, embd_dim,
+                   100, 5, 50, 32, 20, 'rmsprop')
 
 def test_sg15_w2v():
     maxlen = 200
@@ -229,8 +239,8 @@ def test_mr_w2v():
 
 if __name__ == "__main__":
     print('='*50)
-    print('sg15 w2v CNN')
-    test_sg15_w2v()
+    print('sg15 self CNN')
+    test_sg15()
 
     print('='*50)
     print('sg15 self LSTM')
