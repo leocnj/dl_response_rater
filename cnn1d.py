@@ -136,7 +136,7 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
 
 def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen, vocab_size, embd_dim,
-                   nb_filter, filter_length, hidden_dims, batch_size, nb_epoch, optm):
+                   hidden_dims, batch_size, nb_epoch, optm):
     """
     - LSTM  on text input (represented in int)
     - fully-connected model
@@ -146,8 +146,6 @@ def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     :param maxlen max of n char in a sentence
     :param vocab_size
     :param embd_dim
-    :param nb_filter
-    :param filter_length
     :param hidden_dims
     :param batch_size
     :param nb_epoch
@@ -205,20 +203,20 @@ def test_asap():
 
 def test_sg15():
     nb_words = 10000 # for NNS speakers, should be sufficient
-    maxlen = 250
-    embd_dim = 100
+    maxlen = 200
+    embd_dim = 50
     X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(nb_words, maxlen, 'self')
     lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen, nb_words, embd_dim,
-                   100, 5, 100, 32, 20, 'adadelta')
+                   50, 32, 20, 'adadelta')
 
 def test_sg15_w2v():
-    maxlen = 250
+    maxlen = 200
     # embd_dim = 100
     X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(0, maxlen, 'w2v')
     cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen,
-                   100, 3, 100, 32, 20, 'rmsprop')
+                   100, 3, 50, 32, 20, 'rmsprop')
 
 
 def test_mr_w2v():
@@ -231,13 +229,12 @@ def test_mr_w2v():
 
 if __name__ == "__main__":
     print('='*50)
-    print('mr self')
-    #test_mr_embd()
+    print('sg15 w2v CNN')
+    test_sg15_w2v()
 
     print('='*50)
-    print('sg15 w2v')
+    print('sg15 self LSTM')
     test_sg15()
-
 
     print('='*50)
     print('asap self')
