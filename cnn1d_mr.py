@@ -16,6 +16,14 @@ from keras.utils import np_utils
 """
 following https://gist.github.com/xccds/8f0e5b0fe4eb6193261d to do 1d-CNN sentiment detection on the mr data.
 
+1/8/2016 try to follow Kim's method
+- w/o using hidden state
+- dropout on the penultimate layer
+- trying identical params
+
+- only using 100 filter_size=5 filters, already obtain 0.75 after 6 epoch
+
+
 """
 np.random.seed(75513)  # for reproducibility
 
@@ -43,7 +51,7 @@ textraw = df.text.values.tolist()
 textraw = [line.encode('utf-8') for line in textraw]  # keras needs str
 
 # keras handels tokens
-maxfeatures = 50000  # important words
+maxfeatures = 18000  # mr has 18K words
 
 token = Tokenizer(nb_words=maxfeatures)
 token.fit_on_texts(textraw)
@@ -60,14 +68,13 @@ from sklearn.cross_validation import train_test_split
 train_X, test_X, train_y, test_y = train_test_split(text_seq, y, train_size=0.8, random_state=1)
 
 # set parameters:
-maxlen = 100
-batch_size = 32
+maxlen = 64
+batch_size = 50
 embedding_dims = 100
 nb_filter = 100
-filter_length = 5
-hidden_dims = 100
+filter_length = 4
 nb_epoch = 20
-pool_length = 10
+pool_length = maxlen - filter_length + 1
 
 # padding
 
@@ -79,10 +86,6 @@ print('X_test shape:', X_test.shape)
 
 Y_train = np_utils.to_categorical(train_y, nb_classes)
 Y_test = np_utils.to_categorical(test_y, nb_classes)
-
-#
-print('pickled save.p')
-pickle.dump((X_train, Y_train, X_test, Y_test, nb_classes), open( "save.p", "wb"))
 
 print('Build model...')
 model = Sequential()
@@ -96,9 +99,7 @@ model.add(Convolution1D(nb_filter=nb_filter,
 model.add(MaxPooling1D(pool_length=pool_length))
 
 model.add(Flatten())
-model.add(Dense(hidden_dims))
-model.add(Dropout(0.25))
-model.add(Activation('relu'))
+model.add(Dropout(0.5))
 model.add(Dense(nb_classes))
 model.add(Activation('softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
@@ -108,14 +109,6 @@ earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
           validation_split=0.1, show_accuracy=True,callbacks=[earlystop])
 
-# 1/8/2016 no early stopping.
-# model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=4,
-#          validation_split=0.1, show_accuracy=True, verbose=1)
-# score = model.evaluate(X_test, Y_test, batch_size=batch_size, verbose=1, show_accuracy=True)
-
 classes = earlystop.model.predict_classes(X_test, batch_size=batch_size)
 acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test)) # accuracy only supports classes
 print('Test accuracy:', acc)
-
-#print('Test score:', score[0])
-#print('Test accuracy:', score[1])

@@ -25,28 +25,32 @@ def load_w2v(w2vfile):
 def sent_2dvec(sent, max_len, w2v):
     k = 300
     blank_vec = np.random.uniform(-0.25, 0.25, k)
+
     tensor_2d = np.zeros((max_len, k), dtype='float32')
-    i = 0
-    for wd in sent.split(' '):
-        if wd in w2v.vocab:
-            tensor_2d[i] = w2v[wd]
+
+    wds = sent.split(' ')
+    tks = [' '] * max_len
+
+    if len(wds) <= max_len:
+        tks[0:len(wds)] = wds
+    else:
+        tks = wds[0:max_len]
+
+    i = 0 #TODO pythonic coding
+    for tk in tks:
+        if tk in w2v.vocab:
+            tensor_2d[i] = w2v[tk]
         else:
             tensor_2d[i] = blank_vec
         i += 1
-    if i >= max_len:
-        pass
-    else:
-        # padding
-        while i < max_len:
-            tensor_2d[i] = blank_vec
-            i += 1
-    return tensor_2d[0:max_len] ## need to figure out
+
+    return tensor_2d[0:max_len]
 
 
 def sents_3dtensor(sents, max_len, w2v):
     k = 300
     tensor_3d = np.zeros((len(sents), max_len, k), dtype='float32')
-    print tensor_3d.shape
+    print('3d tensor shape:',tensor_3d.shape)
 
     i = 0
     for sent in sents:

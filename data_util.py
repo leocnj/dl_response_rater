@@ -51,6 +51,10 @@ def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type):
     train_X = train_df.text.values.tolist()
     test_X = test_df.text.values.tolist()
 
+    # save for w2v embd
+    train_X_wds = train_X
+    test_X_wds = test_X
+
     train_y = train_df.label.values
     test_y  = test_df.label.values
     nb_classes = len(np.unique(train_y))
@@ -69,8 +73,8 @@ def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type):
     textseq = token.texts_to_sequences(textraw)
 
     # stat about textlist
-    print('nb_words: ',len(token.word_counts))
-    print('maxlen: ',np.mean([len(x) for x in textseq]))
+    print('nb_words: ', len(token.word_counts))
+    print('mean len: ', np.mean([len(x) for x in textseq]))
 
     train_X = textseq[0:n_ta]
     test_X = textseq[n_ta:]
@@ -78,13 +82,11 @@ def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type):
     if(embd_type == 'self'):
         X_train = sequence.pad_sequences(train_X, maxlen=maxlen, padding='post', truncating='post')
         X_test = sequence.pad_sequences(test_X, maxlen=maxlen, padding='post', truncating='post')
-        # X_train = xcol_nninput_embd(train_X, nb_words, maxlen)
-        # X_test  = xcol_nninput_embd(test_X, nb_words, maxlen)
     elif(embd_type == 'w2v'):
         w2v = load_w2v('data/Google_w2v.bin')
         print("loaded Google word2vec")
-        X_train = sents_3dtensor(train_X, maxlen, w2v)
-        X_test  = sents_3dtensor(test_X, maxlen, w2v)
+        X_train = sents_3dtensor(train_X_wds, maxlen, w2v)
+        X_test  = sents_3dtensor(test_X_wds, maxlen, w2v)
     else:
         print('wrong embd_type')
 
@@ -100,7 +102,7 @@ def load_asap(nb_words=10000, maxlen=200, embd_type='self'):
     return(X_train, Y_train, X_test, Y_test, nb_classes)
 
 
-def load_sg15(nb_words=10000, maxlen=200, embd_type='self'):
+def load_sg15(nb_words=8000, maxlen=150, embd_type='self'):
     X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/sg15_train.csv',
                                                              'data/test.csv',
                                                              nb_words, maxlen, embd_type)
