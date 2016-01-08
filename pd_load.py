@@ -5,6 +5,25 @@ load score-level asroutput files into a pandas df
 import re
 import pandas as pd
 
+def mr_csvs():
+    """
+    load data/mr.p and generate two csv files.
+    :return:
+    """
+    x = pickle.load(open('data/mr.p', "rb"))
+    revs, W, W2, word_idx_map, vocab = x[0], x[1], x[2], x[3], x[4]
+    print("mr.p has been loaded!")
+
+    # focusing on revs.
+    texts, labels = [], []
+        for rev in revs:
+        texts.append(rev["text"])
+        labels.append(rev["y"])
+
+    df = pd.DataFrame({'label': labels, 'text': texts})
+    print(df.head())
+
+
 def read_asrout(data_folder, csvFile, clean_string=True):
     """
     read per-score level asrout files
@@ -24,7 +43,7 @@ def read_asrout(data_folder, csvFile, clean_string=True):
                     orig_rev = " ".join(rev).lower()
                 scores.append(score)
                 txts.append(orig_rev)
-    df = pd.DataFrame({'txt': txts, 'score': scores})
+    df = pd.DataFrame({'text': txts, 'score': scores})
     df.to_csv(open(csvFile, 'wb'))
 
 

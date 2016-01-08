@@ -225,8 +225,7 @@ def test_mr_embd():
     nb_words = 50000
     maxlen = 100
     embd_dim = 100
-    #X_train, Y_train, X_test, Y_test, nb_classes = load_mr(nb_words, maxlen, 'self')
-    X_train, Y_train, X_test, Y_test, nb_classes = pickle.load(open('save.p','rb'))
+    X_train, Y_train, X_test, Y_test, nb_classes = load_mr(nb_words, maxlen, 'self')
     cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen, nb_words, embd_dim,
                    100, 5, 100, 32, 20, 'rmsprop')
