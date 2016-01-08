@@ -11,3 +11,5 @@ data/mr.p
 *.pyc
 
 df.csv
+
+save.p

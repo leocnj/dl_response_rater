@@ -1,6 +1,6 @@
 from __future__ import print_function
 import sys
-import cPickle
+import cPickle as pickle
 import pandas as pd
 import numpy as np
 
@@ -17,7 +17,7 @@ from keras.utils import np_utils
 following https://gist.github.com/xccds/8f0e5b0fe4eb6193261d to do 1d-CNN sentiment detection on the mr data.
 
 """
-np.random.seed(1337)  # for reproducibility
+np.random.seed(75513)  # for reproducibility
 
 print
 "loading data..."
@@ -25,7 +25,7 @@ print
 pf = str(sys.argv[1])
 print(pf)
 
-x = cPickle.load(open(pf, "rb"))
+x = pickle.load(open(pf, "rb"))
 revs, W, W2, word_idx_map, vocab = x[0], x[1], x[2], x[3], x[4]
 print("data loaded!")
 
@@ -80,6 +80,10 @@ print('X_test shape:', X_test.shape)
 Y_train = np_utils.to_categorical(train_y, nb_classes)
 Y_test = np_utils.to_categorical(test_y, nb_classes)
 
+#
+print('pickled save.p')
+pickle.dump((X_train, Y_train, X_test, Y_test, nb_classes), open( "save.p", "wb"))
+
 print('Build model...')
 model = Sequential()
 
@@ -89,10 +93,9 @@ model.add(Convolution1D(nb_filter=nb_filter,
                         filter_length=filter_length,
                         border_mode="valid",
                         activation="relu"))
-
 model.add(MaxPooling1D(pool_length=pool_length))
-model.add(Flatten())
 
+model.add(Flatten())
 model.add(Dense(hidden_dims))
 model.add(Dropout(0.25))
 model.add(Activation('relu'))
@@ -100,11 +103,19 @@ model.add(Dense(nb_classes))
 model.add(Activation('softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
 
+# early stopping
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
-result = model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
-            validation_split=0.1, show_accuracy=True,callbacks=[earlystop])
+model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
+          validation_split=0.1, show_accuracy=True,callbacks=[earlystop])
 
-score = model.evaluate(X_test, Y_test, batch_size=batch_size, verbose=1, show_accuracy=True)
+# 1/8/2016 no early stopping.
+# model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=4,
+#          validation_split=0.1, show_accuracy=True, verbose=1)
+# score = model.evaluate(X_test, Y_test, batch_size=batch_size, verbose=1, show_accuracy=True)
 
-print('Test score:', score[0])
-print('Test accuracy:', score[1])
+classes = earlystop.model.predict_classes(X_test, batch_size=batch_size)
+acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test)) # accuracy only supports classes
+print('Test accuracy:', acc)
+
+#print('Test score:', score[0])
+#print('Test accuracy:', score[1])

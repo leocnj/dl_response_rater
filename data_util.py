@@ -103,13 +103,13 @@ def load_mr(nb_words=20000, maxlen=64, embd_type='self'):
     :param embd_type: self vs. w2v
     :return:
     """
-    seed = 1337
+    #seed = 1337
     train_size = 0.8
 
     df = pickled2df('data/mr.p')
     print(df.head())
 
-    np.random.seed(seed)
+    #np.random.seed(seed)
     train_X, test_X, train_y, test_y = train_test_split(df.text.values.tolist(),
                                                         df.label.values,
                                                         train_size=train_size, random_state=1)
