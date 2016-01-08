@@ -245,12 +245,12 @@ if __name__ == "__main__":
 
     print('='*50)
     print('sg15 self CNN')
-    #test_sg15()
+    test_sg15()
 
     print('='*50)
     print('sg15 self LSTM')
-    #test_sg15_lstm()
+    test_sg15_lstm()
 
     print('='*50)
     print('mr self')
-    test_mr_embd()
+    #test_mr_embd()

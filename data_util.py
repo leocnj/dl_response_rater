@@ -61,8 +61,8 @@ def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type):
     n_ta = len(train_X)
     n_ts = len(test_X)
     print('train len vs. test len', n_ta, n_ts)
-    textlist = (train_X. test_X)
-    textraw = [line.encode('utf-8') for line in textlist]  # keras needs str
+
+    textraw = [line.encode('utf-8') for line in train_X+test_X]  # keras needs str
     # keras deals with tokens
     token = Tokenizer(nb_words=nb_words)
     token.fit_on_texts(textraw)
@@ -72,12 +72,14 @@ def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type):
     print('nb_words: ',len(token.word_counts))
     print('maxlen: ',np.mean([len(x) for x in textseq]))
 
-    train_X = textseq[0:n_ta-1]
+    train_X = textseq[0:n_ta]
     test_X = textseq[n_ta:]
 
     if(embd_type == 'self'):
-        X_train = xcol_nninput_embd(train_X, nb_words, maxlen)
-        X_test  = xcol_nninput_embd(test_X, nb_words, maxlen)
+        X_train = sequence.pad_sequences(train_X, maxlen=maxlen, padding='post', truncating='post')
+        X_test = sequence.pad_sequences(test_X, maxlen=maxlen, padding='post', truncating='post')
+        # X_train = xcol_nninput_embd(train_X, nb_words, maxlen)
+        # X_test  = xcol_nninput_embd(test_X, nb_words, maxlen)
     elif(embd_type == 'w2v'):
         w2v = load_w2v('data/Google_w2v.bin')
         print("loaded Google word2vec")
@@ -124,13 +126,12 @@ def load_mr(nb_words=20000, maxlen=64, embd_type='self'):
     Y_train = np_utils.to_categorical(train_y, nb_classes)
     Y_test  = np_utils.to_categorical(test_y, nb_classes)
 
-
     # tokenrize should be applied on train+test jointly
     n_ta = len(train_X)
     n_ts = len(test_X)
     print('train len vs. test len', n_ta, n_ts)
-    textlist = train_X + test_X
-    textraw = [line.encode('utf-8') for line in textlist]  # keras needs str
+
+    textraw = [line.encode('utf-8') for line in train_X+test_X]  # keras needs str
     # keras deals with tokens
     token = Tokenizer(nb_words=nb_words)
     token.fit_on_texts(textraw)
@@ -141,7 +142,7 @@ def load_mr(nb_words=20000, maxlen=64, embd_type='self'):
     print('maxlen: ',np.mean([len(x) for x in textseq]))
 
     train_X = textseq[0:n_ta]
-    test_X = textseq[n_ta+1:]
+    test_X = textseq[n_ta:]
 
     if(embd_type == 'self'):
         X_train = xcol_nninput_embd(train_X, nb_words, maxlen)
