@@ -185,11 +185,11 @@ def test_sg15():
                    100, 5, 50, 20, 'rmsprop')
 
 def test_sg15_w2v():
-    maxlen = 150
+    maxlen = 200
     X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(0, maxlen, 'w2v')
     cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen,
-                   100, 5, 50, 20, 'rmsprop')
+                   100, 10, 64, 20, 'rmsprop')
 
 
 def test_mr_embd():
