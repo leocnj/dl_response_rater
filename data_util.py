@@ -86,7 +86,7 @@ def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type):
         w2v = load_w2v('data/Google_w2v.bin')
         print("loaded Google word2vec")
         X_train = sents_3dtensor(train_X_wds, maxlen, w2v)
-        X_test  = sents_3dtensor(test_X_wds, maxlen, w2v)
+        X_test = sents_3dtensor(test_X_wds, maxlen, w2v)
     else:
         print('wrong embd_type')
 
@@ -114,16 +114,18 @@ def load_mr(nb_words=20000, maxlen=64, embd_type='self'):
     :param embd_type: self vs. w2v
     :return:
     """
-    #seed = 1337
+
     train_size = 0.8
 
     df = pickled2df('data/mr.p')
     print(df.head())
 
-    #np.random.seed(seed)
     train_X, test_X, train_y, test_y = train_test_split(df.text.values.tolist(),
                                                         df.label.values,
                                                         train_size=train_size, random_state=1)
+    train_X_wds = train_X
+    test_X_wds = test_X
+
     nb_classes = len(np.unique(train_y))
     Y_train = np_utils.to_categorical(train_y, nb_classes)
     Y_test  = np_utils.to_categorical(test_y, nb_classes)
@@ -141,7 +143,7 @@ def load_mr(nb_words=20000, maxlen=64, embd_type='self'):
 
     # stat about textlist
     print('nb_words: ',len(token.word_counts))
-    print('maxlen: ',np.mean([len(x) for x in textseq]))
+    print('mean len: ',np.mean([len(x) for x in textseq]))
 
     train_X = textseq[0:n_ta]
     test_X = textseq[n_ta:]
@@ -152,8 +154,8 @@ def load_mr(nb_words=20000, maxlen=64, embd_type='self'):
     elif(embd_type == 'w2v'):
         w2v = load_w2v('data/Google_w2v.bin')
         print("loaded Google word2vec")
-        X_train = sents_3dtensor(train_X, maxlen, w2v)
-        X_test  = sents_3dtensor(test_X, maxlen, w2v)
+        X_train = sents_3dtensor(train_X_wds, maxlen, w2v)
+        X_test  = sents_3dtensor(test_X_wds, maxlen, w2v)
     else:
         print('wrong embd_type')
 

@@ -207,7 +207,7 @@ def test_mr_w2v():
     X_train, Y_train, X_test, Y_test, nb_classes = load_mr(0, maxlen, 'w2v')
     cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen,
-                   100, 5, 100, 32, 20, 'adam') # only adam can move ACC to about 70%.
+                   100, 5, 32, 20, 'rmsprop')
 
 
 if __name__ == "__main__":
@@ -220,8 +220,9 @@ if __name__ == "__main__":
 
     print('='*50)
     print('sg15 word2vec CNN')
-    test_sg15_w2v()
+    #test_sg15_w2v()
 
     print('='*50)
-    print('mr self')
-    #test_mr_embd()
+    print('mr word2vec CNN')
+    test_mr_w2v()
+
