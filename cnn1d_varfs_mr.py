@@ -17,7 +17,8 @@ from keras.models import Graph
 """
 following https://gist.github.com/xccds/8f0e5b0fe4eb6193261d to do 1d-CNN sentiment detection on the mr data.
 
-group syntac is from https://github.com/fchollet/keras/issues/233
+group syntax from https://github.com/fchollet/keras/issues/233 has several issues. Will follow Kai Xiao's verbose method
+
 
 1/8/2016 try to follow Kim's method
 - w/o using hidden state
@@ -75,12 +76,10 @@ maxlen = 64
 batch_size = 50
 embedding_dims = 100
 nb_filter = 100
-filter_length = 4
 nb_epoch = 20
-pool_length = maxlen - filter_length + 1
+
 
 # padding
-
 print("Pad sequences (samples x time)")
 X_train = sequence.pad_sequences(train_X, maxlen=maxlen, padding='post', truncating='post')
 X_test = sequence.pad_sequences(test_X, maxlen=maxlen, padding='post', truncating='post')
@@ -91,7 +90,7 @@ Y_train = np_utils.to_categorical(train_y, nb_classes)
 Y_test = np_utils.to_categorical(test_y, nb_classes)
 
 print('Build model...')
-ngram_filters = [3, 4, 5]
+ngram_filters = [2,3, 4, 5,10]
 nd_convs = ['conv_'+str(n) for n in ngram_filters]
 nd_pools = ['pool_'+str(n) for n in ngram_filters]
 nd_flats = ['flat_'+str(n) for n in ngram_filters]
@@ -102,7 +101,6 @@ model.add_input(name='input', input_shape=(maxlen,), dtype=int)
 model.add_node(Embedding(maxfeatures, embedding_dims, input_length=maxlen),
                name='embedding', input='input')
 # three CNNs
-# TODO generate all node names first to make more concise code
 for i, n_gram in enumerate(ngram_filters):
     pool_length = maxlen - n_gram + 1
     model.add_node(Convolution1D(nb_filter=nb_filter,
@@ -134,3 +132,4 @@ acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))
 print('Test accuracy:', acc)
 
 # using varied filter size, we get slightly high performance to 0.76
+# using [2,3,4,5,10], the performance can be increased to 0.772
