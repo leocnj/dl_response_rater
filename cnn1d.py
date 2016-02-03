@@ -14,7 +14,7 @@ from keras.utils import np_utils
 from keras.layers.recurrent  import SimpleRNN, GRU, LSTM
 from keras.regularizers import l2
 
-from data_util import load_asap, load_sg15, load_mr
+from data_util import load_mr
 import cPickle as pickle
 
 """
@@ -63,6 +63,7 @@ def cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
     classes = earlystop.model.predict_classes(X_test, batch_size=batch_size)
     acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test)) # accuracy only supports classes
     print('Test accuracy:', acc)
+    return(acc)
 
 
 def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
@@ -112,11 +113,12 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     classes = earlystop.model.predict_classes(X_test, batch_size=batch_size)
     acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))
     print('Test accuracy:', acc)
+    return(acc)
 
 
 def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen, vocab_size, embd_dim,
-                   hidden_dims, batch_size, nb_epoch, optm):
+                   batch_size, nb_epoch, optm):
     """
     - LSTM  on text input (represented in int)
     - fully-connected model
@@ -126,7 +128,6 @@ def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     :param maxlen max of n char in a sentence
     :param vocab_size
     :param embd_dim
-    :param hidden_dims
     :param batch_size
     :param nb_epoch
     :param optm optimizer options, e.g., adam, rmsprop, etc.
@@ -137,12 +138,11 @@ def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     model.add(Embedding(vocab_size, embd_dim, input_length=maxlen))
     model.add(Dropout(0.25))
 
-    model.add(LSTM(100))
+    model.add(LSTM(100, return_sequences=True))
+    model.add(LSTM(50))
 
     model.add(Flatten())
-    #model.add(Dense(hidden_dims))
     model.add(Dropout(0.5))
-    #model.add(Activation('relu'))
     model.add(Dense(nb_classes))
     model.add(Activation('softmax'))
     model.compile(loss='categorical_crossentropy', optimizer=optm)
@@ -156,40 +156,6 @@ def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test)) # accuracy only supports classes
     print('Test accuracy:', acc)
 
-
-def test_asap():
-    nb_words = 5000
-    maxlen = 150
-    embd_dim = 100
-    X_train, Y_train, X_test, Y_test, nb_classes = load_asap(nb_words, maxlen, 'self')
-    cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
-                   maxlen, nb_words, embd_dim,
-                   100, 5, 100, 32, 20, 'rmsprop')
-
-def test_sg15_lstm():
-    nb_words = 10000 # for NNS speakers, should be sufficient
-    maxlen = 200
-    embd_dim = 100
-    X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(nb_words, maxlen, 'self')
-    lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
-                   maxlen, nb_words, embd_dim,
-                   50, 32, 20, 'rmsprop')
-
-def test_sg15():
-    nb_words = 8000
-    maxlen = 150
-    embd_dim = 100
-    X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(nb_words, maxlen, 'self')
-    cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
-                   maxlen, nb_words, embd_dim,
-                   100, 5, 50, 20, 'rmsprop')
-
-def test_sg15_w2v():
-    maxlen = 200
-    X_train, Y_train, X_test, Y_test, nb_classes = load_sg15(0, maxlen, 'w2v')
-    cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
-                   maxlen,
-                   100, 10, 64, 20, 'rmsprop')
 
 
 def test_mr_embd():
@@ -215,14 +181,7 @@ if __name__ == "__main__":
     np.random.seed(1337)  # for reproducibility
 
     print('='*50)
-    print('sg15 self CNN')
-    #test_sg15()
-
-    print('='*50)
-    print('sg15 word2vec CNN')
-    #test_sg15_w2v()
-
-    print('='*50)
     print('mr word2vec CNN')
     test_mr_w2v()
+
 

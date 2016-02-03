@@ -12,6 +12,7 @@ from keras.utils import np_utils
 from sklearn.cross_validation import train_test_split
 from sent_op import load_w2v, sents_3dtensor
 
+
 def xcol_nninput_embd(xseq, nb_words, maxlen):
     """
     load textlist, which is corresponding to the text col in a DF
@@ -41,6 +42,7 @@ def pickled2df(pickfile):
         labels.append(rev["y"])
     df = pd.DataFrame({'label': labels, 'text': texts})
     return df
+
 
 def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type):
 
@@ -92,20 +94,6 @@ def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type):
 
     print('X tensor shape: ', X_train.shape)
     print('Y tensor shape: ', Y_train.shape)
-    return(X_train, Y_train, X_test, Y_test, nb_classes)
-
-
-def load_asap(nb_words=10000, maxlen=200, embd_type='self'):
-    X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('../asap_sas/set1_train.csv',
-                                                             '../asap_sas/set1_test.csv',
-                                                             nb_words, maxlen, embd_type)
-    return(X_train, Y_train, X_test, Y_test, nb_classes)
-
-
-def load_sg15(nb_words=8000, maxlen=150, embd_type='self'):
-    X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/sg15_train.csv',
-                                                             'data/test.csv',
-                                                             nb_words, maxlen, embd_type)
     return(X_train, Y_train, X_test, Y_test, nb_classes)
 
 
@@ -163,16 +151,8 @@ def load_mr(nb_words=20000, maxlen=64, embd_type='self'):
     print('Y tensor shape: ', Y_train.shape)
     return (X_train, Y_train, X_test, Y_test, nb_classes)
 
+
 def main():
-    print('asap separate train and test')
-    #load_asap()
-    print('='*50)
-
-    print('sg15 separate train and test')
-    #load_sg15()
-    print('='*50)
-
-    print('mr single df')
     load_mr('self')
 
 if __name__=="__main__":

@@ -13,3 +13,7 @@ data/mr.p
 df.csv
 
 save.p
+
+data/pun_of_day/*.csv
+data/TED/*.csv
+

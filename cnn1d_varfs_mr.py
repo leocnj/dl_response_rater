@@ -17,7 +17,9 @@ from keras.models import Graph
 """
 following https://gist.github.com/xccds/8f0e5b0fe4eb6193261d to do 1d-CNN sentiment detection on the mr data.
 
-group syntax from https://github.com/fchollet/keras/issues/233 has several issues. Will follow Kai Xiao's verbose method
+Group syntax from https://github.com/fchollet/keras/issues/233 has several issues.
+
+Will follow Kai Xiao's verbose method
 
 
 1/8/2016 try to follow Kim's method
