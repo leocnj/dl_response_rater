@@ -17,6 +17,8 @@ from keras.regularizers import l2
 from data_util import load_mr
 import cPickle as pickle
 
+import ml_metrics as metrics
+
 """
    following https://gist.github.com/xccds/8f0e5b0fe4eb6193261d
    to do 1d-CNN on different text classification tasks
@@ -63,7 +65,10 @@ def cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
     classes = earlystop.model.predict_classes(X_test, batch_size=batch_size)
     acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test)) # accuracy only supports classes
     print('Test accuracy:', acc)
-    return(acc)
+    #return(acc)
+    kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
+    print('Test Kappa:', kappa)
+    return(kappa)
 
 
 def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
@@ -113,7 +118,10 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     classes = earlystop.model.predict_classes(X_test, batch_size=batch_size)
     acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))
     print('Test accuracy:', acc)
-    return(acc)
+    # return(acc)
+    kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
+    print('Test Kappa:', kappa)
+    return(kappa)
 
 
 def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
@@ -155,7 +163,9 @@ def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     classes = earlystop.model.predict_classes(X_test, batch_size=batch_size)
     acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test)) # accuracy only supports classes
     print('Test accuracy:', acc)
-
+    kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
+    print('Test Kappa:', kappa)
+    return(kappa)
 
 
 def test_mr_embd():

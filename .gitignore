@@ -17,3 +17,5 @@ save.p
 data/pun_of_day/*.csv
 data/TED/*.csv
 
+
+data/TED/ted_data.zip

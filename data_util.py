@@ -43,8 +43,8 @@ def pickled2df(pickfile):
     df = pd.DataFrame({'label': labels, 'text': texts})
     return df
 
-
-def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type):
+# TODO split into two based on embd_type
+def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type, w2v):
 
     train_df = pd.read_csv(traincsv)
     test_df = pd.read_csv(testcsv)
@@ -85,8 +85,6 @@ def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type):
         X_train = sequence.pad_sequences(train_X, maxlen=maxlen, padding='post', truncating='post')
         X_test = sequence.pad_sequences(test_X, maxlen=maxlen, padding='post', truncating='post')
     elif(embd_type == 'w2v'):
-        w2v = load_w2v('data/Google_w2v.bin')
-        print("loaded Google word2vec")
         X_train = sents_3dtensor(train_X_wds, maxlen, w2v)
         X_test = sents_3dtensor(test_X_wds, maxlen, w2v)
     else:

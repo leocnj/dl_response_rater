@@ -1,6 +1,8 @@
 from data_util import load_csvs
 from cnn1d import cnn1d_selfembd, cnn1d_w2vembd, lstm_selfembd
 import numpy as np
+import ml_metrics as metrics
+from sent_op import load_w2v
 
 def load_asap(nb_words=10000, maxlen=200, embd_type='self'):
     X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('../asap_sas/set1_train.csv',
@@ -174,12 +176,64 @@ def ted_cv_w2v():
     acc_cv = np.mean(accs)
     print('after 10-fold cv:' + str(acc_cv))
 
+# TODO convert to func
+
+def asap_cv():
+    maxlen = 40
+    nb_words = 3000
+    embd_dim = 100
+
+    folds = range(1,11)
+    trains = ['data/asap2/train'+str(fold)+'.csv' for fold in folds]
+    tests = ['data/asap2/test'+str(fold)+'.csv' for fold in folds]
+    pairs = zip(trains, tests)
+
+    kappas = []
+    for (train, test) in pairs:
+        print(train + '=>' + test)
+        X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test,
+                                                             nb_words, maxlen, embd_type='self', w2v=None)
+
+        kappa = lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                             maxlen, nb_words, embd_dim,
+                             50, 20, 'rmsprop')
+        kappas.append(kappa)
+    kappa_cv = metrics.mean_quadratic_weighted_kappa(kappas)
+    # TODO add other metrics.
+    print('after 10-fold cv:' + str(kappa_cv))
+
+
+def asap_cv_w2v():
+    maxlen = 40
+
+    folds = range(1,11)
+    trains = ['data/asap2/train'+str(fold)+'.csv' for fold in folds]
+    tests = ['data/asap2/test'+str(fold)+'.csv' for fold in folds]
+    pairs = zip(trains, tests)
+
+    w2v = load_w2v('data/Google_w2v.bin')
+    print("loaded Google word2vec")
+
+    kappas = []
+    for (train, test) in pairs:
+        print(train + '=>' + test)
+        X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test,
+                                                             0, maxlen, embd_type='w2v', w2v=w2v)
+
+        kappa = cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                             maxlen,
+                             100, 3, 50, 20, 'rmsprop')
+        kappas.append(kappa)
+    kappa_cv = np.mean(kappas)
+    print('after 10-fold cv:' + str(kappa_cv))
 
 
 if __name__=="__main__":
     # pun_cv_w2v()
     # ted_cv_w2v()
-    ted_cv()
+    # ted_cv()
+    asap_cv()
+    #asap_cv_w2v()
     
 
 
