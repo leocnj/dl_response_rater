@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 from keras.preprocessing import sequence
-from keras.models import Sequential
+from keras.models import Sequential, Graph
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.embeddings import Embedding
 from keras.layers.convolutional import Convolution1D, MaxPooling1D
@@ -71,6 +71,9 @@ def cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
     return(kappa)
 
 
+def qw_kappa_loss(y_true, y_pred):
+    return metrics.quadratic_weighted_kappa(y_true, y_pred)
+
 def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen, vocab_size, embd_dim,
                    nb_filter, filter_length, batch_size, nb_epoch, optm):
@@ -110,6 +113,7 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     model.add(Activation('softmax'))
     model.compile(loss='categorical_crossentropy', optimizer=optm)
 
+
     earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 
     model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
@@ -122,6 +126,128 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
     print('Test Kappa:', kappa)
     return(kappa)
+
+
+
+def cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                     maxlen, vocab_size, embd_size,
+                     nb_filter, batch_size, nb_epoches, optm):
+    """
+    cnn1d using varying filter lengths
+    note need using Graph
+    :param X_train:
+    :param Y_Train:
+    :param X_test:
+    :param Y_test:
+    :param nb_classes:
+    :param maxlen:
+    :param vocab_size:
+    :param embd_size:
+    :param batch_size:
+    :param nb_epoches:
+    :param optm:
+    :return:
+    """
+    ngram_filters = [4,5,6]
+    nd_convs = ['conv_'+str(n) for n in ngram_filters]
+    nd_pools = ['pool_'+str(n) for n in ngram_filters]
+    nd_flats = ['flat_'+str(n) for n in ngram_filters]
+
+    model = Graph()
+    model.add_input(name='input', input_shape=(maxlen,), dtype=int)
+
+    model.add_node(Embedding(vocab_size, embd_size, input_length=maxlen),
+                   name='embedding', input='input')
+    # three CNNs
+    for i, n_gram in enumerate(ngram_filters):
+        pool_length = maxlen - n_gram + 1
+        model.add_node(Convolution1D(nb_filter=nb_filter,
+                                     filter_length=n_gram,
+                                     border_mode="valid",
+                                     activation="relu"),
+                       name=nd_convs[i], input='embedding')
+        model.add_node(MaxPooling1D(pool_length=pool_length),
+                       name=nd_pools[i], input=nd_convs[i])
+        model.add_node(Flatten(), name=nd_flats[i], input=nd_pools[i])
+
+    model.add_node(Dropout(0.5), name='dropout', inputs=nd_flats, merge_mode='concat')
+    model.add_node(Dense(nb_classes, activation='softmax'), name='softmax', input='dropout')
+
+    model.add_output(name='output', input='softmax')
+    model.compile(optm, loss={'output': 'categorical_crossentropy'})  # note Graph()'s diff syntax
+
+    # early stopping
+    earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
+    model.fit({'input': X_train, 'output': Y_train},
+              nb_epoch=nb_epoches, batch_size=batch_size,
+              validation_split=0.1, callbacks=[earlystop])
+    # Graph doesn't have several arg/func existing in Sequential()
+    # - fit no show-accuracy
+    # - no predict_classes
+    classes = model.predict({'input': X_test}, batch_size=batch_size)['output'].argmax(axis=1)
+    acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))  # accuracy only supports classes
+    print('Test accuracy:', acc)
+    kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
+    print('Test Kappa:', kappa)
+    return kappa
+
+
+
+def cnn_var_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                  maxlen,
+                  nb_filter, batch_size, nb_epoches, optm):
+    """
+    - CNN-1d on 3d sensor which uses word2vec embedding
+    - MOT
+
+    :param <X, Y> train and test sets
+    :param nb_classes # of classes
+    :param maxlen max of n char in a sentence
+    :param nb_filter
+    :param filter_length
+    :param batch_size
+    :param nb_epoch
+    :param optm
+    :return:
+    """
+    ngram_filters = [3, 4, 5]
+    nd_convs = ['conv_'+str(n) for n in ngram_filters]
+    nd_pools = ['pool_'+str(n) for n in ngram_filters]
+    nd_flats = ['flat_'+str(n) for n in ngram_filters]
+
+    model = Graph()
+    model.add_input(name='input', input_shape=(maxlen, 300), dtype='float')
+
+    # three CNNs
+    for i, n_gram in enumerate(ngram_filters):
+        pool_length = maxlen - n_gram + 1
+        model.add_node(Convolution1D(nb_filter=nb_filter,
+                                     filter_length=n_gram,
+                                     border_mode="valid",
+                                     activation="relu", input_shape=(maxlen, 300)),
+                       name=nd_convs[i], input='input')
+        model.add_node(MaxPooling1D(pool_length=pool_length),
+                       name=nd_pools[i], input=nd_convs[i])
+        model.add_node(Flatten(), name=nd_flats[i], input=nd_pools[i])
+
+    model.add_node(Dropout(0.5), name='dropout', inputs=nd_flats, merge_mode='concat')
+    model.add_node(Dense(nb_classes, activation='softmax'), name='softmax', input='dropout')
+
+    model.add_output(name='output', input='softmax')
+    model.compile(optm, loss={'output': 'categorical_crossentropy'})  # note Graph()'s diff syntax
+
+    # early stopping
+    earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
+    model.fit({'input': X_train, 'output': Y_train},
+              nb_epoch=nb_epoches, batch_size=batch_size,
+              validation_split=0.1, callbacks=[earlystop])
+    # Graph doesn't have several arg/func existing in Sequential()
+    # - fit no show-accuracy
+    # - no predict_classes
+    classes = model.predict({'input': X_test}, batch_size=batch_size)['output'].argmax(axis=1)
+    acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))  # accuracy only supports cla
+    print('Test Acc: ', acc)
+    return acc
 
 
 def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
@@ -146,7 +272,7 @@ def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     model.add(Embedding(vocab_size, embd_dim, input_length=maxlen))
     model.add(Dropout(0.25))
 
-    model.add(LSTM(100, return_sequences=True))
+    #model.add(LSTM(100, return_sequences=True))
     model.add(LSTM(50))
 
     model.add(Flatten())
@@ -166,6 +292,10 @@ def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
     print('Test Kappa:', kappa)
     return(kappa)
+
+
+
+
 
 
 def test_mr_embd():
