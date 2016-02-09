@@ -331,9 +331,9 @@ if __name__=="__main__":
     # pun_cv_w2v()
     # ted_cv_w2v()
     # ted_cv()
-    # asap_cv()
+    asap_cv()
     # asap_cv_w2v()
-    asap_cv_cnnvar()
+    # asap_cv_cnnvar()
 
     
 

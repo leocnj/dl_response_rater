@@ -13,6 +13,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.callbacks import EarlyStopping
 from keras.utils import np_utils
 from keras.models import Graph
+from data_util import load_csvs
 
 """
 following https://gist.github.com/xccds/8f0e5b0fe4eb6193261d to do 1d-CNN sentiment detection on the mr data.
@@ -21,7 +22,8 @@ Group syntax from https://github.com/fchollet/keras/issues/233 has several issue
 
 Will follow Kai Xiao's verbose method
 
-
+- test syntax of using multiple inputs
+- switch from MR to ASAP2 (one set).
 
 1/8/2016 try to follow Kim's method
 - w/o using hidden state
@@ -37,64 +39,23 @@ np.random.seed(75513)  # for reproducibility
 print
 "loading data..."
 
-pf = 'data/mr.p'
-print(pf)
+train_df = pd.read_csv('data/asap2/train1.csv')
+test_df = pd.read_csv('data/asap2/test1.csv')
 
-x = pickle.load(open(pf, "rb"))
-revs, W, W2, word_idx_map, vocab = x[0], x[1], x[2], x[3], x[4]
-print("data loaded!")
+nb_words = 2900
+maxlen = 75
+embd_dim = 50
 
-# focusing on revs.
-texts, labels = [], []
-for rev in revs:
-    texts.append(rev["text"])
-    labels.append(rev["y"])
+X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/asap2/train1.csv',
+                                                         'data/asap2/test1.csv',
+                                                         nb_words, maxlen, 'self', w2v=None)
 
-df = pd.DataFrame({'label': labels, 'text': texts})
-print(df.head())
-df.to_csv(path_or_buf="df.csv")
-
-textraw = df.text.values.tolist()
-textraw = [line.encode('utf-8') for line in textraw]  # keras needs str
-
-
-# keras handels tokens
-maxfeatures = 18000  # mr has 18K words
-
-token = Tokenizer(nb_words=maxfeatures)
-token.fit_on_texts(textraw)
-text_seq = token.texts_to_sequences(textraw)
-print(np.median([len(x) for x in text_seq]))
-
-# y
-y = df.label.values
-nb_classes = len(np.unique(y))
-print(nb_classes)
-
-# simple 80/20 split on the entire data.
-from sklearn.cross_validation import train_test_split
-train_X, test_X, train_y, test_y = train_test_split(text_seq, y, train_size=0.8, random_state=1)
-
-# set parameters:
-maxlen = 64
-batch_size = 50
-embedding_dims = 100
 nb_filter = 100
 nb_epoch = 20
-
-
-# padding
-print("Pad sequences (samples x time)")
-X_train = sequence.pad_sequences(train_X, maxlen=maxlen, padding='post', truncating='post')
-X_test = sequence.pad_sequences(test_X, maxlen=maxlen, padding='post', truncating='post')
-print('X_train shape:', X_train.shape)
-print('X_test shape:', X_test.shape)
-
-Y_train = np_utils.to_categorical(train_y, nb_classes)
-Y_test = np_utils.to_categorical(test_y, nb_classes)
+batch_size = 50
 
 print('Build model...')
-ngram_filters = [2,3, 4, 5,10]
+ngram_filters = [3, 4, 5]
 nd_convs = ['conv_'+str(n) for n in ngram_filters]
 nd_pools = ['pool_'+str(n) for n in ngram_filters]
 nd_flats = ['flat_'+str(n) for n in ngram_filters]
@@ -102,7 +63,7 @@ nd_flats = ['flat_'+str(n) for n in ngram_filters]
 model = Graph()
 model.add_input(name='input', input_shape=(maxlen,), dtype=int)
 
-model.add_node(Embedding(maxfeatures, embedding_dims, input_length=maxlen),
+model.add_node(Embedding(nb_words, embd_dim, input_length=maxlen),
                name='embedding', input='input')
 # three CNNs
 for i, n_gram in enumerate(ngram_filters):
@@ -115,11 +76,8 @@ for i, n_gram in enumerate(ngram_filters):
     model.add_node(MaxPooling1D(pool_length=pool_length),
                    name=nd_pools[i], input=nd_convs[i])
     model.add_node(Flatten(), name=nd_flats[i], input=nd_pools[i])
-
-model.add_node(Dropout(0.5), name='dropout', inputs=nd_flats,
-               merge_mode='concat')
+model.add_node(Dropout(0.5), name='dropout', inputs=nd_flats, merge_mode='concat')
 model.add_node(Dense(nb_classes, activation='softmax'), name='softmax', input='dropout')
-
 model.add_output(name='output', input='softmax')
 model.compile('rmsprop', loss={'output': 'categorical_crossentropy'})  # note Graph()'s diff syntax
 
@@ -135,5 +93,3 @@ classes = model.predict({'input': X_test}, batch_size=batch_size)['output'].argm
 acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))  # accuracy only supports classes
 print('Test accuracy:', acc)
 
-# using varied filter size, we get slightly high performance to 0.76
-# using [2,3,4,5,10], the performance can be increased to 0.772

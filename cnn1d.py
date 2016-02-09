@@ -108,7 +108,7 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
 
     model.add(Flatten())
     model.add(Dropout(0.5))
-    # model.add(Dense(nb_classes, W_regularizer=l2(3)))
+
     model.add(Dense(nb_classes))
     model.add(Activation('softmax'))
     model.compile(loss='categorical_crossentropy', optimizer=optm)
@@ -148,7 +148,7 @@ def cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     :param optm:
     :return:
     """
-    ngram_filters = [4,5,6]
+    ngram_filters = [2,5,8]
     nd_convs = ['conv_'+str(n) for n in ngram_filters]
     nd_pools = ['pool_'+str(n) for n in ngram_filters]
     nd_flats = ['flat_'+str(n) for n in ngram_filters]
@@ -189,8 +189,8 @@ def cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     print('Test accuracy:', acc)
     kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
     print('Test Kappa:', kappa)
-    return kappa
-
+    #return kappa
+    return acc
 
 
 def cnn_var_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
