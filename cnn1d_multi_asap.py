@@ -43,8 +43,13 @@ X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/asap2/train1.csv'
                                                          nb_words, maxlen, 'self', w2v=None)
 
 # get #char to be a feature.
-len_char_train = np.array([len(x) for x in train_df.text.values.tolist()], dtype='float32')
-len_char_test = np.array([len(x) for x in test_df.text.values.tolist()], dtype='float32')
+len_char_train = np.array([len(x.split()) for x in train_df.text.values.tolist()], dtype='float32')
+len_char_test = np.array([len(x.split()) for x in test_df.text.values.tolist()], dtype='float32')
+
+# normalize
+len_max = np.max(len_char_train)
+len_char_train /= len_max
+len_char_test /= len_max
 
 # IMPORTANT! reshape to make sure dim=2 (#sample, 1)
 len_char_train = len_char_train.reshape(len_char_train.shape[0], 1)

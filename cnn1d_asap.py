@@ -83,7 +83,7 @@ model.compile('rmsprop', loss={'output': 'categorical_crossentropy'})  # note Gr
 
 # early stopping
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
-model.fit({'input':X_train, 'output':Y_train},
+model.fit({'input': X_train, 'output': Y_train},
           nb_epoch=nb_epoch, batch_size=batch_size,
           validation_split=0.1, callbacks=[earlystop])
 # Graph doesn't have several arg/func existing in Sequential()
