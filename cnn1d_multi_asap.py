@@ -42,6 +42,15 @@ X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/asap2/train1.csv'
                                                          'data/asap2/test1.csv',
                                                          nb_words, maxlen, 'self', w2v=None)
 
+
+pos_train, foo1, pos_test, foo2, foo3 = load_csvs('../sentproc_spaCy/test/train1_pos.csv',
+                                                  '../sentproc_spaCy/test/test1_pos.csv',
+                                                  20, maxlen, 'self', w2v=None)
+
+dp_train,  foo1, dp_test, foo2,  foo3        = load_csvs('../sentproc_spaCy/test/train1_dp.csv',
+                                                         '../sentproc_spaCy/test/train1_dp.csv',
+                                                         nb_words, maxlen, 'self', w2v=None)
+
 # get #char to be a feature.
 len_char_train = np.array([len(x.split()) for x in train_df.text.values.tolist()], dtype='float32')
 len_char_test = np.array([len(x.split()) for x in test_df.text.values.tolist()], dtype='float32')
@@ -61,6 +70,9 @@ nb_filter = 100
 nb_epoch = 20
 batch_size = 50
 
+pos_embd_dim = 20
+dp_embd_dim = 100
+
 print('Build model...')
 ngram_filters = [3, 4, 5]
 nd_convs = ['conv_'+str(n) for n in ngram_filters]
@@ -71,7 +83,7 @@ model = Graph()
 model.add_input(name='input', input_shape=(maxlen,), dtype=int)
 
 # 2nd input from len_char
-model.add_input(name='lenchar', input_shape=(1,), dtype=float)
+# model.add_input(name='lenchar', input_shape=(1,), dtype=float)
 
 model.add_node(Embedding(nb_words, embd_dim, input_length=maxlen),
                name='embedding', input='input')
@@ -88,8 +100,28 @@ for i, n_gram in enumerate(ngram_filters):
     model.add_node(Flatten(), name=nd_flats[i], input=nd_pools[i])
 model.add_node(Dropout(0.5), name='dropout', inputs=nd_flats, merge_mode='concat')
 
+# POS CNN
+pos_f_len = 5
+pos_pool_len = maxlen - pos_f_len + 1
+model.add_input(name='posinput', input_shape=(maxlen,), dtype=int)
+model.add_node(Embedding(20, pos_embd_dim, input_length=maxlen),
+               name='posembd', input='posinput')
+model.add_node(Convolution1D(nb_filter=nb_filter,
+                             filter_length=pos_f_len,
+                             border_mode='valid',
+                             activation='relu'),
+               name='poscnn', input='posembd')
+model.add_node(MaxPooling1D(pool_length=pos_pool_len),
+               name='pospool', input='poscnn')
+model.add_node(Flatten(), name='posflat', input='pospool')
+model.add_node(Dropout(0.5), name='posdropout', input='posflat')
+
+# DP CNN
+
+
 # using CNN and length features together
-model.add_node(Dense(nb_classes, activation='softmax'), name='softmax', inputs=['dropout', 'lenchar'],
+model.add_node(Dense(nb_classes, activation='softmax'), name='softmax',
+               inputs=['dropout', 'posdropout'],
                merge_mode='concat')
 
 model.add_output(name='output', input='softmax')
@@ -97,13 +129,13 @@ model.compile('rmsprop', loss={'output': 'categorical_crossentropy'})
 
 # early stopping
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
-model.fit({'input': X_train, 'lenchar': len_char_train, 'output': Y_train},
+model.fit({'input': X_train, 'posinput': pos_train, 'output': Y_train},
           nb_epoch=nb_epoch, batch_size=batch_size,
           validation_split=0.1, callbacks=[earlystop])
 # Graph doesn't have several arg/func existing in Sequential()
 # - fit no show-accuracy
 # - no predict_classes
-classes = model.predict({'input': X_test, 'lenchar' : len_char_test}, batch_size=batch_size)['output'].argmax(axis=1)
+classes = model.predict({'input': X_test, 'posinput': pos_test}, batch_size=batch_size)['output'].argmax(axis=1)
 acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))  # accuracy only supports classes
 print('Test accuracy:', acc)
 
