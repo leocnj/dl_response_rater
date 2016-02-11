@@ -1,5 +1,6 @@
 from data_util import load_csvs
-from cnn1d import cnn1d_selfembd, cnn1d_w2vembd, lstm_selfembd, cnn_var_selfembd, cnn_var_w2vembd
+from cnn1d import cnn1d_selfembd, cnn1d_w2vembd, lstm_selfembd, cnn_var_selfembd, cnn_var_w2vembd, cnn_multi_selfembd
+
 import numpy as np
 import ml_metrics as metrics
 from sent_op import load_w2v
@@ -324,6 +325,45 @@ def asap_cv_cnnvar():
 
     print('after 10-fold cv:' + str(kappa_cv))
 
+
+def asap_cv_cnn_multi():
+    maxlen = 75
+    nb_words = 4500
+    embd_dim = 50
+    nb_pos = 15
+
+    folds = (1,2,3,4,5,6,7,8,9,10)
+    trains = ['data/asap2/train'+str(fold)+'.csv' for fold in folds]
+    tests = ['data/asap2/test'+str(fold)+'.csv' for fold in folds]
+    pos_tas = ['data/asap2/pos/train'+str(fold)+'_pos.csv' for fold in folds]
+    pos_tss = ['data/asap2/pos/test'+str(fold)+'_pos.csv' for fold in folds]
+    dp_tas = ['data/asap2/dp/train'+str(fold)+'_dp.csv' for fold in folds]
+    dp_tss = ['data/asap2/dp/test'+str(fold)+'_dp.csv' for fold in folds]
+
+    pairs = zip(trains, tests, pos_tas, pos_tss, dp_tas, dp_tss)
+
+    kappas = []
+    for (train, test, pos_ta, pos_ts, dp_ta, dp_ts) in pairs:
+        print(train + '=>' + test)
+        X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test,
+                                                                nb_words, maxlen, embd_type='self', w2v=None)
+        pos_train, foo1, pos_test, foo2, foo3 = load_csvs(pos_ta, pos_ts,
+                                                          nb_pos, maxlen, embd_type='self', w2v=None)
+        dp_train,  foo1, dp_test, foo2, foo3 = load_csvs(dp_ta, dp_ts,
+                                                         nb_words, maxlen, embd_type='self', w2v=None)
+
+        kappa = cnn_multi_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                             maxlen, nb_words, embd_dim,
+                             pos_train, pos_test, 10,
+                             dp_train, dp_test, 40,
+                             50, 32, 30, 'rmsprop')
+        kappas.append(kappa)
+    kappa_cv = metrics.mean_quadratic_weighted_kappa(kappas)
+
+    print('after 10-fold cv:' + str(kappa_cv))
+
+
+
 if __name__=="__main__":
     # pun_cv_cnnvar()
     # pun_cv_w2v_cnnvar()
@@ -331,7 +371,7 @@ if __name__=="__main__":
     # pun_cv_w2v()
     # ted_cv_w2v()
     # ted_cv()
-    asap_cv()
+    asap_cv_cnn_multi()
     # asap_cv_w2v()
     # asap_cv_cnnvar()
 

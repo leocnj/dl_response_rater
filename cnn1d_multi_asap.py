@@ -13,6 +13,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.callbacks import EarlyStopping
 from keras.utils import np_utils
 from keras.models import Graph
+from keras.regularizers import l1,l2
 from data_util import load_csvs
 
 """
@@ -74,7 +75,7 @@ pos_embd_dim = 10
 dp_embd_dim = 40
 
 print('Build model...')
-ngram_filters = [2,5,8]
+ngram_filters = [2, 5, 8]
 nd_convs = ['conv_'+str(n) for n in ngram_filters]
 nd_pools = ['pool_'+str(n) for n in ngram_filters]
 nd_flats = ['flat_'+str(n) for n in ngram_filters]
@@ -132,8 +133,8 @@ model.add_node(MaxPooling1D(pool_length=dp_pool_len),
 model.add_node(Flatten(), name='dpflat', input='dppool')
 model.add_node(Dropout(0.5), name='dpdropout', input='dpflat')
 
-# using CNN and length features together
-model.add_node(Dense(nb_classes, activation='softmax'), name='softmax',
+# using three CNNs to predict with L1
+model.add_node(Dense(nb_classes, activation='softmax', W_regularizer=l2(0.05)), name='softmax',
                inputs=['dropout', 'posdropout', 'dpdropout'],
                merge_mode='concat')
 
