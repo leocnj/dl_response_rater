@@ -319,7 +319,7 @@ def asap_cv_cnnvar():
 
         kappa = cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                              maxlen, nb_words, embd_dim,
-                             100, 50, 20, 'rmsprop')
+                             50, 32, 30, 'rmsprop')
         kappas.append(kappa)
     kappa_cv = metrics.mean_quadratic_weighted_kappa(kappas)
 
@@ -371,9 +371,9 @@ if __name__=="__main__":
     # pun_cv_w2v()
     # ted_cv_w2v()
     # ted_cv()
-    asap_cv_cnn_multi()
+    # asap_cv_cnn_multi()
     # asap_cv_w2v()
-    # asap_cv_cnnvar()
+    asap_cv_cnnvar()
 
     
 

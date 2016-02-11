@@ -274,7 +274,7 @@ def cnn_multi_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     :param optm:
     :return:
     """
-    ngram_filters = [2,5,8]
+    ngram_filters = [2, 5, 8]
     nd_convs = ['conv_'+str(n) for n in ngram_filters]
     nd_pools = ['pool_'+str(n) for n in ngram_filters]
     nd_flats = ['flat_'+str(n) for n in ngram_filters]
@@ -300,7 +300,7 @@ def cnn_multi_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
 
     # POS CNN
     nb_pos = 15
-    pos_f_len = 5
+    pos_f_len = 3
     pos_pool_len = maxlen - pos_f_len + 1
     model.add_input(name='posinput', input_shape=(maxlen,), dtype=int)
     model.add_node(Embedding(nb_pos, pos_embd_dim, input_length=maxlen),
@@ -317,7 +317,7 @@ def cnn_multi_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
 
     # DP CNN
     nb_dp = vocab_size
-    dp_f_len = 5
+    dp_f_len = 3
     dp_pool_len = maxlen - dp_f_len + 1
     model.add_input(name='dpinput', input_shape=(maxlen,), dtype=int)
     model.add_node(Embedding(nb_dp, dp_embd_dim, input_length=maxlen),
