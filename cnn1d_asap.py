@@ -50,12 +50,12 @@ X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/asap2/train1.csv'
                                                          'data/asap2/test1.csv',
                                                          nb_words, maxlen, 'self', w2v=None)
 
-nb_filter = 100
-nb_epoch = 20
-batch_size = 50
+nb_filter = 50
+nb_epoch = 30
+batch_size = 32
 
 print('Build model...')
-ngram_filters = [3, 4, 5]
+ngram_filters = [2, 5, 8]
 nd_convs = ['conv_'+str(n) for n in ngram_filters]
 nd_pools = ['pool_'+str(n) for n in ngram_filters]
 nd_flats = ['flat_'+str(n) for n in ngram_filters]
