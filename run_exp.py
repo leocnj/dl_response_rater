@@ -249,7 +249,32 @@ def ted_cv_w2v():
     acc_cv = np.mean(accs)
     print('after 10-fold cv:' + str(acc_cv))
 
-# TODO convert to func
+
+
+def ted_cv_w2v_cnnvar():
+    maxlen = 20
+
+    folds = range(1,11)
+    trains = ['data/TED/train'+str(fold)+'.csv' for fold in folds]
+    tests = ['data/TED/test'+str(fold)+'.csv' for fold in folds]
+    pairs = zip(trains, tests)
+
+    w2v = load_w2v('data/Google_w2v.bin')
+    print("loaded Google word2vec")
+
+    accs = []
+    for (train, test) in pairs:
+        print(train + '=>' + test)
+        X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test,
+                                                             0, maxlen, embd_type='w2v', w2v=w2v)
+
+        acc = cnn_var_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                             maxlen,
+                             100, 50, 25, 'adagrad')
+        accs.append(acc)
+    acc_cv = np.mean(accs)
+    print('after 10-fold cv:' + str(acc_cv))
+
 
 def asap_cv():
     maxlen = 75
@@ -363,6 +388,54 @@ def asap_cv_cnn_multi():
     print('after 10-fold cv:' + str(kappa_cv))
 
 
+def tpo_cv_cnnvar():
+    maxlen = 175
+    nb_words = 6500
+    embd_dim = 100
+
+    folds = range(1, 11)
+    trains = ['data/tpov4/train_'+str(fold)+'.csv' for fold in folds]
+    tests = ['data/tpov4/test_'+str(fold)+'.csv' for fold in folds]
+    pairs = zip(trains, tests)
+
+    accs = []
+    for (train, test) in pairs:
+        print(train + '=>' + test)
+        X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test,
+                                                             nb_words, maxlen, embd_type='self', w2v=None)
+
+        acc = cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                             maxlen, nb_words, embd_dim,
+                             100, 32, 25, 'rmsprop')
+        accs.append(acc)
+    acc_cv = np.mean(accs)
+    print('after 10-fold cv:' + str(acc_cv))
+
+
+def tpo_cv_w2v_cnnvar():
+    maxlen = 175
+
+    folds = range(1,11)
+    trains = ['data/tpov4/train_'+str(fold)+'.csv' for fold in folds]
+    tests = ['data/tpov4/test_'+str(fold)+'.csv' for fold in folds]
+    pairs = zip(trains, tests)
+
+    w2v = load_w2v('data/Google_w2v.bin')
+    print("loaded Google word2vec")
+
+    accs = []
+    for (train, test) in pairs:
+        print(train + '=>' + test)
+        X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test,
+                                                             0, maxlen, embd_type='w2v', w2v=w2v)
+
+        acc = cnn_var_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                             maxlen,
+                             100, 50, 25, 'rmsprop')
+        accs.append(acc)
+    acc_cv = np.mean(accs)
+    print('after 10-fold cv:' + str(acc_cv))
+
 
 if __name__=="__main__":
     # pun_cv_cnnvar()
@@ -370,10 +443,13 @@ if __name__=="__main__":
     # ted_cv_cnnvar()
     # pun_cv_w2v()
     # ted_cv_w2v()
+    # ted_cv_w2v_cnnvar()
     # ted_cv()
     # asap_cv_cnn_multi()
     # asap_cv_w2v()
-    asap_cv_cnnvar()
+    # asap_cv_cnnvar()
+    tpo_cv_cnnvar()
+    # tpo_cv_w2v_cnnvar()  0.43 acc just chance.
 
     
 

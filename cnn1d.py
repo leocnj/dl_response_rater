@@ -148,7 +148,7 @@ def cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     :param optm:
     :return:
     """
-    ngram_filters = [2,5,8]
+    ngram_filters = [2, 5, 8]
     nd_convs = ['conv_'+str(n) for n in ngram_filters]
     nd_pools = ['pool_'+str(n) for n in ngram_filters]
     nd_flats = ['flat_'+str(n) for n in ngram_filters]
@@ -210,7 +210,7 @@ def cnn_var_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
     :param optm
     :return:
     """
-    ngram_filters = [3, 4, 5]
+    ngram_filters = [2, 5, 8]
     nd_convs = ['conv_'+str(n) for n in ngram_filters]
     nd_pools = ['pool_'+str(n) for n in ngram_filters]
     nd_flats = ['flat_'+str(n) for n in ngram_filters]
