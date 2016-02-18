@@ -43,6 +43,34 @@ def pickled2df(pickfile):
     df = pd.DataFrame({'label': labels, 'text': texts})
     return df
 
+
+def list_to_seq(lst, max_len):
+    seq = np.array(lst.rstrip().split(), dtype='float32')
+    seq_pd = seq.resize(max_len)
+    return seq_pd
+
+
+def load_other(csv_in, max_len):
+    df = pd.read_csv(csv_in)
+
+    df_durs = df.dur.values.tolist()
+    df_lls = df.lkh.values.tolist()
+
+    k = 2
+    tensor_3d = np.zeros((len(df), max_len, k), dtype='float32')
+
+    i = 0
+    for dur_ln, ll_ln in zip(df_durs, df_lls):
+        dur_seq = list_to_seq(dur_ln, max_len)
+        ll_seq = list_to_seq(ll_ln, max_len)
+        both = np.column_stack((dur_seq, ll_seq))
+        tensor_3d[i] = both
+        i += 1
+
+    return(tensor_3d)
+
+
+
 # TODO split into two based on embd_type
 def load_csvs(traincsv, testcsv, nb_words, maxlen, embd_type, w2v):
 
@@ -150,8 +178,13 @@ def load_mr(nb_words=20000, maxlen=64, embd_type='self'):
     return (X_train, Y_train, X_test, Y_test, nb_classes)
 
 
+def test_other():
+    load_other('data/tpov4/train_1_other.csv', max_len=175)
+
 def main():
     load_mr('self')
 
+
 if __name__=="__main__":
-    main()
+    # main()
+    test_other()
