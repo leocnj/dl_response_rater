@@ -43,10 +43,28 @@ def pickled2df(pickfile):
     df = pd.DataFrame({'label': labels, 'text': texts})
     return df
 
+# dur  40.67 108.45
+# lkh  -173.74  366.11
+# using this to z-score values.
 
-def list_to_seq(lst, max_len):
+def z_dur(x):
+    return (x - 40.67)/108.45
+
+def z_ll(x):
+    return (x + 173.74)/366.11
+
+
+def list_to_seq_dur(lst, max_len):
     seq = np.array(lst.rstrip().split(), dtype='float32')
-    seq_pd = seq.resize(max_len)
+    seq = z_dur(seq)
+    seq_pd = np.resize(seq, max_len)
+    return seq_pd
+
+
+def list_to_seq_ll(lst, max_len):
+    seq = np.array(lst.rstrip().split(), dtype='float32')
+    seq = z_ll(seq)
+    seq_pd = np.resize(seq, max_len)
     return seq_pd
 
 
@@ -61,8 +79,8 @@ def load_other(csv_in, max_len):
 
     i = 0
     for dur_ln, ll_ln in zip(df_durs, df_lls):
-        dur_seq = list_to_seq(dur_ln, max_len)
-        ll_seq = list_to_seq(ll_ln, max_len)
+        dur_seq = list_to_seq_dur(dur_ln, max_len)
+        ll_seq = list_to_seq_ll(ll_ln, max_len)
         both = np.column_stack((dur_seq, ll_seq))
         tensor_3d[i] = both
         i += 1
@@ -179,7 +197,9 @@ def load_mr(nb_words=20000, maxlen=64, embd_type='self'):
 
 
 def test_other():
-    load_other('data/tpov4/train_1_other.csv', max_len=175)
+    tensor = load_other('data/tpov4/train_1_other.csv', max_len=175)
+    print(tensor)
+
 
 def main():
     load_mr('self')

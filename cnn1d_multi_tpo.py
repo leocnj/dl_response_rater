@@ -112,12 +112,13 @@ model.add_node(Dropout(0.5), name='posdropout', input='posflat')
 
 
 # using three CNNs to predict with L1
-model.add_node(Dense(nb_classes, activation='softmax', W_regularizer=l2(0.05)), name='softmax',
+model.add_node(Dense(nb_classes, activation='softmax'), name='softmax',
                inputs=['dropout', 'posdropout'],
                merge_mode='concat')
 
 model.add_output(name='output', input='softmax')
 model.compile('rmsprop', loss={'output': 'categorical_crossentropy'})
+# model.compile('rmsprop', loss={'output': 'mean_squared_error'})
 
 # early stopping
 earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
