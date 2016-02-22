@@ -15,6 +15,7 @@ from keras.utils import np_utils
 from keras.models import Graph
 from keras.regularizers import l1,l2
 from data_util import load_csvs, load_other
+import ml_metrics as metrics
 
 """
 following https://gist.github.com/xccds/8f0e5b0fe4eb6193261d to do 1d-CNN sentiment detection on the mr data.
@@ -39,13 +40,13 @@ nb_words = 6500
 maxlen = 175
 embd_dim = 100
 
-X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/tpov4/train_1.csv',
-                                                         'data/tpov4/test_1.csv',
+X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/tpov4/train_2.csv',
+                                                         'data/tpov4/test_2.csv',
                                                          nb_words, maxlen, 'self', w2v=None)
 
 # read _other.csv
-pos_train = load_other('data/tpov4/train_1_other.csv', maxlen)
-pos_test = load_other('data/tpov4/test_1_other.csv', maxlen)
+pos_train = load_other('data/tpov4/train_2_other.csv', maxlen)
+pos_test = load_other('data/tpov4/test_2_other.csv', maxlen)
 
 print('other tensor:', pos_train.shape)
 
@@ -64,7 +65,7 @@ len_char_test = len_char_test.reshape(len_char_test.shape[0], 1)
 
 print('len_char_train shape:', len_char_train.shape)
 
-nb_filter = 50
+nb_filter = 100
 nb_epoch = 30
 batch_size = 32
 
@@ -96,7 +97,7 @@ for i, n_gram in enumerate(ngram_filters):
 model.add_node(Dropout(0.5), name='dropout', inputs=nd_flats, merge_mode='concat')
 
 # other CNN
-pos_f_len = 5
+pos_f_len = 10
 pos_pool_len = maxlen - pos_f_len + 1
 model.add_input(name='posinput', input_shape=(maxlen, 2), dtype='float')
 model.add_node(Convolution1D(nb_filter=nb_filter,
@@ -133,4 +134,6 @@ classes = model.predict({'input': X_test, 'posinput': pos_test},
                         batch_size=batch_size)['output'].argmax(axis=1)
 acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))  # accuracy only supports classes
 print('Test accuracy:', acc)
+kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
+print('Test Kappa:', kappa)
 
