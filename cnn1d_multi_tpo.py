@@ -39,14 +39,15 @@ test_df  = pd.read_csv('data/tpov4/test_1.csv')
 nb_words = 6500
 maxlen = 175
 embd_dim = 100
+other_col_dim = 4
 
-X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/tpov4/train_2.csv',
-                                                         'data/tpov4/test_2.csv',
+X_train, Y_train, X_test, Y_test, nb_classes = load_csvs('data/tpov4/train_1.csv',
+                                                         'data/tpov4/test_1.csv',
                                                          nb_words, maxlen, 'self', w2v=None)
 
 # read _other.csv
-pos_train = load_other('data/tpov4/train_2_other.csv', maxlen)
-pos_test = load_other('data/tpov4/test_2_other.csv', maxlen)
+pos_train = load_other('data/tpov4/train_1_other.csv', maxlen, other_col_dim)
+pos_test = load_other('data/tpov4/test_1_other.csv', maxlen, other_col_dim)
 
 print('other tensor:', pos_train.shape)
 
@@ -99,12 +100,12 @@ model.add_node(Dropout(0.5), name='dropout', inputs=nd_flats, merge_mode='concat
 # other CNN
 pos_f_len = 10
 pos_pool_len = maxlen - pos_f_len + 1
-model.add_input(name='posinput', input_shape=(maxlen, 2), dtype='float')
+model.add_input(name='posinput', input_shape=(maxlen, other_col_dim), dtype='float')
 model.add_node(Convolution1D(nb_filter=nb_filter,
                              filter_length=pos_f_len,
                              border_mode='valid',
                              activation='relu',
-                             input_shape=(maxlen, 2)),
+                             input_shape=(maxlen, other_col_dim)),
                name='poscnn', input='posinput')
 model.add_node(MaxPooling1D(pool_length=pos_pool_len),
                name='pospool', input='poscnn')

@@ -194,7 +194,7 @@ def cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
 
 
 def cnn_var_selfembd_other(X_train, Y_train, X_test, Y_test, nb_classes,
-                           Other_train, Other_test,
+                           Other_train, Other_test, k,
                            maxlen, vocab_size, embd_size,
                            nb_filter, batch_size, nb_epoches, optm):
     """
@@ -239,12 +239,12 @@ def cnn_var_selfembd_other(X_train, Y_train, X_test, Y_test, nb_classes,
     # CNN for other
     pos_f_len = 10
     pos_pool_len = maxlen - pos_f_len + 1
-    model.add_input(name='other_input', input_shape=(maxlen, 2), dtype='float')
+    model.add_input(name='other_input', input_shape=(maxlen, k), dtype='float')
     model.add_node(Convolution1D(nb_filter=nb_filter,
                                  filter_length=pos_f_len,
                                  border_mode='valid',
                                  activation='relu',
-                                 input_shape=(maxlen, 2)),
+                                 input_shape=(maxlen, k)),
                    name='poscnn', input='other_input')
     model.add_node(MaxPooling1D(pool_length=pos_pool_len),
                    name='pospool', input='poscnn')

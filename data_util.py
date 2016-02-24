@@ -43,15 +43,21 @@ def pickled2df(pickfile):
     df = pd.DataFrame({'label': labels, 'text': texts})
     return df
 
-# dur  40.67 108.45
-# lkh  -173.74  366.11
-# using this to z-score values.
 
 def z_dur(x):
-    return (x - 40.67)/108.45
+    return (x - 38.63)/49.0
+
 
 def z_ll(x):
-    return (x + 173.74)/366.11
+    return (x + 168.72)/248.18
+
+
+def z_pitch(x):
+    return (x - 108.67)/61.01
+
+
+def z_int(x):
+    return (x - 66.07)/12.07
 
 
 def list_to_seq_dur(lst, max_len):
@@ -68,24 +74,42 @@ def list_to_seq_ll(lst, max_len):
     return seq_pd
 
 
-def load_other(csv_in, max_len):
+def list_to_seq_pm(lst, max_len):
+    seq = np.array(lst.rstrip().split(), dtype='float32')
+    seq = z_pitch(seq)
+    seq_pd = np.resize(seq, max_len)
+    return seq_pd
+
+
+def list_to_seq_im(lst, max_len):
+    seq = np.array(lst.rstrip().split(), dtype='float32')
+    seq = z_int(seq)
+    seq_pd = np.resize(seq, max_len)
+    return seq_pd
+
+
+def load_other(csv_in, max_len, k):
     df = pd.read_csv(csv_in)
 
     df_durs = df.dur.values.tolist()
     df_lls = df.lkh.values.tolist()
+    df_pms = df.p_m.values.tolist()
+    df_ims = df.i_m.values.tolist()
 
-    k = 2
     tensor_3d = np.zeros((len(df), max_len, k), dtype='float32')
 
     i = 0
-    for dur_ln, ll_ln in zip(df_durs, df_lls):
+    for dur_ln, ll_ln, pm_ln, im_ln in zip(df_durs, df_lls, df_pms, df_ims):
         dur_seq = list_to_seq_dur(dur_ln, max_len)
         ll_seq = list_to_seq_ll(ll_ln, max_len)
-        both = np.column_stack((dur_seq, ll_seq))
+        pm_seq = list_to_seq_pm(pm_ln, max_len)
+        im_seq = list_to_seq_im(im_ln, max_len)
+        both = np.column_stack((dur_seq, ll_seq, pm_seq, im_seq))
+        # both = np.column_stack((dur_seq, ll_seq, im_seq))
         tensor_3d[i] = both
         i += 1
 
-    return(tensor_3d)
+    return tensor_3d
 
 
 

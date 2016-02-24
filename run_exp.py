@@ -441,9 +441,10 @@ def tpo_cv_w2v_cnnvar():
 
 def tpo_cv_cnnvar_other():
 
-    maxlen = 175
+    maxlen = 200
     nb_words = 6500
     embd_dim = 100
+    k = 4
 
     folds = range(1, 11)
     trains = ['data/tpov4/train_'+str(fold)+'.csv' for fold in folds]
@@ -457,13 +458,13 @@ def tpo_cv_cnnvar_other():
         print(train + '=>' + test)
         X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test,
                                                              nb_words, maxlen, embd_type='self', w2v=None)
-        Other_train = load_other(ta_other, maxlen)
-        Other_test = load_other(ts_other, maxlen)
+        Other_train = load_other(ta_other, maxlen, k)
+        Other_test = load_other(ts_other, maxlen, k)
 
         acc = cnn_var_selfembd_other(X_train, Y_train, X_test, Y_test, nb_classes,
-                               Other_train, Other_test,
+                               Other_train, Other_test, k,
                                maxlen, nb_words, embd_dim,
-                               100, 32, 25, 'rmsprop')
+                               50, 32, 25, 'rmsprop')
         accs.append(acc)
     acc_cv = np.mean(accs)
     print('after 10-fold cv:' + str(acc_cv))
@@ -482,9 +483,9 @@ if __name__=="__main__":
     # asap_cv_cnn_multi()
     # asap_cv_w2v()
     # asap_cv_cnnvar()
-    tpo_cv_cnnvar()
+    # tpo_cv_cnnvar()      # ACC 0.5464
     # tpo_cv_w2v_cnnvar()  0.43 acc just chance.
-    # tpo_cv_cnnvar_other()
+    tpo_cv_cnnvar_other()  # ACC 0.5456
 
 
 
