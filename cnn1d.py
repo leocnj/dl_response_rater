@@ -276,6 +276,72 @@ def cnn_var_selfembd_other(X_train, Y_train, X_test, Y_test, nb_classes,
     return acc
 
 
+def cnn_other(Y_train, Y_test, nb_classes,
+              Other_train, Other_test, k,
+              maxlen,
+              nb_filter, filter_size, batch_size, nb_epoches, optm):
+    """
+    cnn1d using varying filter lengths
+    note need using Graph
+    :param Y_Train:
+    :param Y_test:
+    :param nb_classes:
+    :param maxlen:
+    :param vocab_size:
+    :param embd_size:
+    :param batch_size:
+    :param nb_epoches:
+    :param optm:
+    :return:
+    """
+    model = Graph()
+
+    # CNN for other
+    pos_pool_len = maxlen/2 - filter_size + 1
+    model.add_input(name='other_input', input_shape=(maxlen, k), dtype='float')
+
+    model.add_node(Convolution1D(nb_filter=nb_filter,
+                                 filter_length=filter_size,
+                                 border_mode='valid',
+                                 activation='relu',
+                                 input_shape=(maxlen, k)),
+                   name='poscnn', input='other_input')
+    model.add_node(MaxPooling1D(pool_length=5),
+                   name='pospool', input='poscnn')
+
+    # 2nd CNN
+    model.add_node(Convolution1D(nb_filter=nb_filter*2,
+                                 filter_length=filter_size,
+                                 border_mode='valid',
+                                 activation='relu'),
+                   name='cnn2', input='pospool')
+    model.add_node(MaxPooling1D(pool_length=10),
+                   name='cnn2_pool', input='cnn2')
+
+    model.add_node(Flatten(), name='posflat', input='cnn2_pool')
+    model.add_node(Dropout(0.5), name='posdropout', input='posflat')
+
+    model.add_node(Dense(nb_classes, activation='softmax'), name='softmax',
+                   input='posdropout')
+    model.add_output(name='output', input='softmax')
+    model.compile(optm, loss={'output': 'categorical_crossentropy'})  # note Graph()'s diff syntax
+
+    # early stopping
+    earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
+    model.fit({'other_input': Other_train, 'output': Y_train},
+              nb_epoch=nb_epoches, batch_size=batch_size,
+              validation_split=0.1, callbacks=[earlystop])
+    # Graph doesn't have several arg/func existing in Sequential()
+    # - fit no show-accuracy
+    # - no predict_classes
+    classes = model.predict({'other_input': Other_test},
+                            batch_size=batch_size)['output'].argmax(axis=1)
+    acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))  # accuracy only supports classes
+    print('Test accuracy:', acc)
+    kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
+    print('Test Kappa:', kappa)
+    return acc
+
 
 
 def cnn_var_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,

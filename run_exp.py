@@ -1,7 +1,7 @@
 from data_util import load_csvs, load_other
 from cnn1d import cnn1d_selfembd, cnn1d_w2vembd, lstm_selfembd, \
     cnn_var_selfembd, cnn_var_w2vembd, cnn_multi_selfembd, \
-    cnn_var_selfembd_other
+    cnn_var_selfembd_other, cnn_other
 
 import numpy as np
 import ml_metrics as metrics
@@ -470,6 +470,36 @@ def tpo_cv_cnnvar_other():
     print('after 10-fold cv:' + str(acc_cv))
 
 
+def tpo_cv_cnn_other():
+
+    maxlen = 200
+    nb_words = 6500
+    filter_size = 20
+    k = 4
+
+    folds = range(1, 11)
+    trains = ['data/tpov4/train_'+str(fold)+'.csv' for fold in folds]
+    tests = ['data/tpov4/test_'+str(fold)+'.csv' for fold in folds]
+    tas_other = ['data/tpov4/train_'+str(fold)+'_other.csv' for fold in folds]
+    tss_other = ['data/tpov4/test_'+str(fold)+'_other.csv' for fold in folds]
+    pairs = zip(trains, tests, tas_other, tss_other)
+
+    accs = []
+    for (train, test, ta_other, ts_other) in pairs:
+        print(train + '=>' + test)
+        X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test,
+                                                             nb_words, maxlen, embd_type='self', w2v=None)
+        Other_train = load_other(ta_other, maxlen, k)
+        Other_test = load_other(ts_other, maxlen, k)
+
+        acc = cnn_other(Y_train, Y_test, nb_classes,
+                        Other_train, Other_test, k,
+                        maxlen,
+                        50, filter_size, 32, 25, 'rmsprop')
+        accs.append(acc)
+    acc_cv = np.mean(accs)
+    print('after 10-fold cv:' + str(acc_cv))
+
 
 
 if __name__=="__main__":
@@ -483,18 +513,19 @@ if __name__=="__main__":
     # asap_cv_cnn_multi()
     # asap_cv_w2v()
     # asap_cv_cnnvar()
-    tpo_cv_cnnvar()      #  ACC 0.5464
+    # tpo_cv_cnnvar()      #  ACC 0.5464
     # tpo_cv_w2v_cnnvar()  0.43 acc just chance.
     # tpo_cv_cnnvar_other()  # ACC 0.5456
+    tpo_cv_cnn_other()
 
 
 # tpo_cv_cnnvar  max_len 175 filter = 100 ACC 0.5464
+
+
+
 #                max_len 200 filter = 50  ACC 0.5364
-
-
 # tpo cv_cnnvar_other max_len 200 filter = 50 ACC is 0.5520
-
-
+# tpo cv_cnn_other max_len 200 filter 50 f_size 10 ACC  0.5015
 
 
 
