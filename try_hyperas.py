@@ -45,7 +45,8 @@ def keras_model():
     model.add(Dropout(0.05))
     model.add(Dense(nb_classes))
     model.add(Activation('softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+    model.compile(loss='categorical_crossentropy',
+                  optimizer={{choice(['rmsprop', 'adam', 'adadelta', 'adagrad'])}})
 
     earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 
