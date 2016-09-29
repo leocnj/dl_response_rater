@@ -120,11 +120,14 @@ def pun_cv_w2v():
     tests = ['data/pun_of_day/test'+str(fold)+'.csv' for fold in folds]
     pairs = zip(trains, tests)
 
+    w2v = load_w2v('data/Google_w2v.bin')
+    print("loaded Google word2vec")
+
     accs = []
     for (train, test) in pairs:
         print(train + '=>' + test)
         X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test,
-                                                             0, maxlen, embd_type='w2v')
+                                                             0, maxlen, embd_type='w2v', w2v=w2v)
 
         acc = cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
                              maxlen,

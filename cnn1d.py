@@ -5,8 +5,8 @@ import pandas as pd
 import numpy as np
 
 from keras.preprocessing import sequence
-from keras.models import Sequential, Graph
-from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.models import Sequential, Model
+from keras.layers import Input, Dense, Dropout, Activation, Flatten, merge
 from keras.layers import Embedding
 from keras.layers import Convolution1D, MaxPooling1D
 from keras.callbacks import EarlyStopping
@@ -132,64 +132,37 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
 def cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                      maxlen, vocab_size, embd_size,
                      nb_filter, batch_size, nb_epoches, optm):
-    """
-    cnn1d using varying filter lengths
-    note need using Graph
-    :param X_train:
-    :param Y_Train:
-    :param X_test:
-    :param Y_test:
-    :param nb_classes:
-    :param maxlen:
-    :param vocab_size:
-    :param embd_size:
-    :param batch_size:
-    :param nb_epoches:
-    :param optm:
-    :return:
-    """
     ngram_filters = [2, 5, 8]
-    nd_convs = ['conv_' + str(n) for n in ngram_filters]
-    nd_pools = ['pool_' + str(n) for n in ngram_filters]
-    nd_flats = ['flat_' + str(n) for n in ngram_filters]
 
-    model = Graph()
-    model.add_input(name='input', input_shape=(maxlen,), dtype=int)
+    input = Input(shape=(maxlen,), name='input', dtype='int32')
+    embedded = Embedding(input_dim=vocab_size, output_dim=embd_size, input_length=maxlen)(input)
 
-    model.add_node(Embedding(vocab_size, embd_size, input_length=maxlen),
-                   name='embedding', input='input')
+    convs = [None, None, None]
     # three CNNs
     for i, n_gram in enumerate(ngram_filters):
         pool_length = maxlen - n_gram + 1
-        model.add_node(Convolution1D(nb_filter=nb_filter,
-                                     filter_length=n_gram,
-                                     border_mode="valid",
-                                     activation="relu"),
-                       name=nd_convs[i], input='embedding')
-        model.add_node(MaxPooling1D(pool_length=pool_length),
-                       name=nd_pools[i], input=nd_convs[i])
-        model.add_node(Flatten(), name=nd_flats[i], input=nd_pools[i])
+        convs[i] = Convolution1D(nb_filter=nb_filter,
+                                 filter_length=n_gram,
+                                 border_mode="valid",
+                                 activation="relu")(embedded)
+        convs[i] = MaxPooling1D(pool_length=pool_length)(convs[i])
+        convs[i] = Flatten()(convs[i])
 
-    model.add_node(Dropout(0.5), name='dropout', inputs=nd_flats, merge_mode='concat')
-    model.add_node(Dense(nb_classes, activation='softmax'), name='softmax', input='dropout')
+    merged = merge([convs[0], convs[1], convs[2]], mode='concat', concat_axis=1)
+    merged = Dropout(0.5)(merged)
+    output = Dense(nb_classes, activation='softmax', name='output')(merged)
 
-    model.add_output(name='output', input='softmax')
-    model.compile(optm, loss={'output': 'categorical_crossentropy'})  # note Graph()'s diff syntax
-
-    # early stopping
-    earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
-    model.fit({'input': X_train, 'output': Y_train},
+    model = Model(input, output)
+    model.compile(optm, loss={'output': 'categorical_crossentropy'})
+    model.fit(X_train, Y_train,
               nb_epoch=nb_epoches, batch_size=batch_size,
-              validation_split=0.1, callbacks=[earlystop])
-    # Graph doesn't have several arg/func existing in Sequential()
-    # - fit no show-accuracy
-    # - no predict_classes
-    classes = model.predict({'input': X_test}, batch_size=batch_size)['output'].argmax(axis=1)
-    acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))  # accuracy only supports classes
+              validation_split=0.1)
+    classes = model.predict(X_test, batch_size=batch_size)
+    acc = np_utils.accuracy(np_utils.categorical_probas_to_classes(classes),
+                            np_utils.categorical_probas_to_classes(Y_test))
     print('Test accuracy:', acc)
     kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
     print('Test Kappa:', kappa)
-    # return kappa
     return acc
 
 
