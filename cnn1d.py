@@ -6,12 +6,12 @@ import numpy as np
 
 from keras.preprocessing import sequence
 from keras.models import Sequential, Graph
-from keras.layers.core import Dense, Dropout, Activation, Flatten
-from keras.layers.embeddings import Embedding
-from keras.layers.convolutional import Convolution1D, MaxPooling1D
+from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Embedding
+from keras.layers import Convolution1D, MaxPooling1D
 from keras.callbacks import EarlyStopping
 from keras.utils import np_utils
-from keras.layers.recurrent  import SimpleRNN, GRU, LSTM
+from keras.layers import SimpleRNN, GRU, LSTM
 from keras.regularizers import l2
 
 from data_util import load_mr
@@ -24,6 +24,7 @@ import ml_metrics as metrics
    to do 1d-CNN on different text classification tasks
 
 """
+
 
 def cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
                   maxlen,
@@ -63,16 +64,17 @@ def cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
               validation_split=0.1, show_accuracy=True, callbacks=[earlystop])
 
     classes = earlystop.model.predict_classes(X_test, batch_size=batch_size)
-    acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test)) # accuracy only supports classes
+    acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))  # accuracy only supports classes
     print('Test accuracy:', acc)
-    #return(acc)
+    # return(acc)
     kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
     print('Test Kappa:', kappa)
-    return(kappa)
+    return (kappa)
 
 
 def qw_kappa_loss(y_true, y_pred):
     return metrics.quadratic_weighted_kappa(y_true, y_pred)
+
 
 def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                    maxlen, vocab_size, embd_dim,
@@ -113,7 +115,6 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     model.add(Activation('softmax'))
     model.compile(loss='categorical_crossentropy', optimizer=optm)
 
-
     earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
 
     model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
@@ -125,8 +126,7 @@ def cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     # return(acc)
     kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
     print('Test Kappa:', kappa)
-    return(kappa)
-
+    return (kappa)
 
 
 def cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
@@ -149,9 +149,9 @@ def cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     :return:
     """
     ngram_filters = [2, 5, 8]
-    nd_convs = ['conv_'+str(n) for n in ngram_filters]
-    nd_pools = ['pool_'+str(n) for n in ngram_filters]
-    nd_flats = ['flat_'+str(n) for n in ngram_filters]
+    nd_convs = ['conv_' + str(n) for n in ngram_filters]
+    nd_pools = ['pool_' + str(n) for n in ngram_filters]
+    nd_flats = ['flat_' + str(n) for n in ngram_filters]
 
     model = Graph()
     model.add_input(name='input', input_shape=(maxlen,), dtype=int)
@@ -189,7 +189,7 @@ def cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     print('Test accuracy:', acc)
     kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
     print('Test Kappa:', kappa)
-    #return kappa
+    # return kappa
     return acc
 
 
@@ -214,9 +214,9 @@ def cnn_var_selfembd_other(X_train, Y_train, X_test, Y_test, nb_classes,
     :return:
     """
     ngram_filters = [2, 5, 8]
-    nd_convs = ['conv_'+str(n) for n in ngram_filters]
-    nd_pools = ['pool_'+str(n) for n in ngram_filters]
-    nd_flats = ['flat_'+str(n) for n in ngram_filters]
+    nd_convs = ['conv_' + str(n) for n in ngram_filters]
+    nd_pools = ['pool_' + str(n) for n in ngram_filters]
+    nd_flats = ['flat_' + str(n) for n in ngram_filters]
 
     model = Graph()
     model.add_input(name='input', input_shape=(maxlen,), dtype=int)
@@ -272,7 +272,7 @@ def cnn_var_selfembd_other(X_train, Y_train, X_test, Y_test, nb_classes,
     print('Test accuracy:', acc)
     kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
     print('Test Kappa:', kappa)
-    #return kappa
+    # return kappa
     return acc
 
 
@@ -297,7 +297,7 @@ def cnn_other(Y_train, Y_test, nb_classes,
     model = Graph()
 
     # CNN for other
-    pos_pool_len = maxlen/2 - filter_size + 1
+    pos_pool_len = maxlen / 2 - filter_size + 1
     model.add_input(name='other_input', input_shape=(maxlen, k), dtype='float')
 
     model.add_node(Convolution1D(nb_filter=nb_filter,
@@ -310,7 +310,7 @@ def cnn_other(Y_train, Y_test, nb_classes,
                    name='pospool', input='poscnn')
 
     # 2nd CNN
-    model.add_node(Convolution1D(nb_filter=nb_filter*2,
+    model.add_node(Convolution1D(nb_filter=nb_filter * 2,
                                  filter_length=filter_size,
                                  border_mode='valid',
                                  activation='relu'),
@@ -343,10 +343,9 @@ def cnn_other(Y_train, Y_test, nb_classes,
     return acc
 
 
-
 def cnn_var_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
-                  maxlen,
-                  nb_filter, batch_size, nb_epoches, optm):
+                    maxlen,
+                    nb_filter, batch_size, nb_epoches, optm):
     """
     - CNN-1d on 3d sensor which uses word2vec embedding
     - MOT
@@ -362,9 +361,9 @@ def cnn_var_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
     :return:
     """
     ngram_filters = [2, 5, 8]
-    nd_convs = ['conv_'+str(n) for n in ngram_filters]
-    nd_pools = ['pool_'+str(n) for n in ngram_filters]
-    nd_flats = ['flat_'+str(n) for n in ngram_filters]
+    nd_convs = ['conv_' + str(n) for n in ngram_filters]
+    nd_pools = ['pool_' + str(n) for n in ngram_filters]
+    nd_flats = ['flat_' + str(n) for n in ngram_filters]
 
     model = Graph()
     model.add_input(name='input', input_shape=(maxlen, 300), dtype='float')
@@ -401,13 +400,11 @@ def cnn_var_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
     return acc
 
 
-
-
 def cnn_multi_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
-                    maxlen, vocab_size, embd_size,
-                    pos_train, pos_test, pos_embd_dim,
-                    dp_train, dp_test, dp_embd_dim,
-                    nb_filter, batch_size, nb_epoches, optm):
+                       maxlen, vocab_size, embd_size,
+                       pos_train, pos_test, pos_embd_dim,
+                       dp_train, dp_test, dp_embd_dim,
+                       nb_filter, batch_size, nb_epoches, optm):
     """
     cnn1d using multi-inputs, i.e., word, POS, DP
     word using varying filter lengths
@@ -426,9 +423,9 @@ def cnn_multi_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     :return:
     """
     ngram_filters = [2, 5, 8]
-    nd_convs = ['conv_'+str(n) for n in ngram_filters]
-    nd_pools = ['pool_'+str(n) for n in ngram_filters]
-    nd_flats = ['flat_'+str(n) for n in ngram_filters]
+    nd_convs = ['conv_' + str(n) for n in ngram_filters]
+    nd_pools = ['pool_' + str(n) for n in ngram_filters]
+    nd_flats = ['flat_' + str(n) for n in ngram_filters]
 
     model = Graph()
     model.add_input(name='input', input_shape=(maxlen,), dtype=int)
@@ -447,7 +444,6 @@ def cnn_multi_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                        name=nd_pools[i], input=nd_convs[i])
         model.add_node(Flatten(), name=nd_flats[i], input=nd_pools[i])
     model.add_node(Dropout(0.5), name='dropout', inputs=nd_flats, merge_mode='concat')
-
 
     # POS CNN
     nb_pos = 15
@@ -509,13 +505,9 @@ def cnn_multi_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     # return acc
 
 
-
-
-
-
 def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
-                   maxlen, vocab_size, embd_dim,
-                   batch_size, nb_epoch, optm):
+                  maxlen, vocab_size, embd_dim,
+                  batch_size, nb_epoch, optm):
     """
     - LSTM  on text input (represented in int)
     - fully-connected model
@@ -535,7 +527,7 @@ def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
     model.add(Embedding(vocab_size, embd_dim, input_length=maxlen))
     model.add(Dropout(0.25))
 
-    #model.add(LSTM(100, return_sequences=True))
+    # model.add(LSTM(100, return_sequences=True))
     model.add(LSTM(50))
 
     model.add(Flatten())
@@ -550,15 +542,11 @@ def lstm_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
               validation_split=0.1, show_accuracy=True, callbacks=[earlystop])
 
     classes = earlystop.model.predict_classes(X_test, batch_size=batch_size)
-    acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test)) # accuracy only supports classes
+    acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))  # accuracy only supports classes
     print('Test accuracy:', acc)
     kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
     print('Test Kappa:', kappa)
-    return(kappa)
-
-
-
-
+    return (kappa)
 
 
 def test_mr_embd():
@@ -575,16 +563,13 @@ def test_mr_w2v():
     maxlen = 64
     X_train, Y_train, X_test, Y_test, nb_classes = load_mr(0, maxlen, 'w2v')
     cnn1d_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
-                   maxlen,
-                   100, 5, 32, 20, 'rmsprop')
+                  maxlen,
+                  100, 5, 32, 20, 'rmsprop')
 
 
 if __name__ == "__main__":
-
     np.random.seed(1337)  # for reproducibility
 
-    print('='*50)
-    print('mr word2vec CNN')
-    test_mr_w2v()
-
-
+    print('=' * 50)
+    print("mr selfembd CNN")
+    test_mr_embd()

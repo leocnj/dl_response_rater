@@ -102,8 +102,8 @@ def pun_cv():
     accs = []
     for (train, test) in pairs:
         print(train + '=>' + test)
-        X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test,
-                                                             nb_words, maxlen, embd_type='self')
+        X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test, nb_words, maxlen,
+                                                                 embd_type='self', w2v=None)
 
         acc = cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
                              maxlen, nb_words, embd_dim,
@@ -503,7 +503,8 @@ def tpo_cv_cnn_other():
 
 
 if __name__=="__main__":
-    # pun_cv_cnnvar()
+    # pun_cv()
+    pun_cv_cnnvar()
     # pun_cv_w2v_cnnvar()
     # ted_cv_cnnvar()
     # pun_cv_w2v()
@@ -516,13 +517,10 @@ if __name__=="__main__":
     # tpo_cv_cnnvar()      #  ACC 0.5464
     # tpo_cv_w2v_cnnvar()  0.43 acc just chance.
     # tpo_cv_cnnvar_other()  # ACC 0.5456
-    tpo_cv_cnn_other()
+    # tpo_cv_cnn_other()
 
 
 # tpo_cv_cnnvar  max_len 175 filter = 100 ACC 0.5464
-
-
-
 #                max_len 200 filter = 50  ACC 0.5364
 # tpo cv_cnnvar_other max_len 200 filter = 50 ACC is 0.5520
 # tpo cv_cnn_other max_len 200 filter 50 f_size 10 ACC  0.5015
