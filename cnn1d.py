@@ -154,14 +154,19 @@ def cnn_var_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
 
     model = Model(input, output)
     model.compile(optm, loss={'output': 'categorical_crossentropy'})
+    earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
     model.fit(X_train, Y_train,
               nb_epoch=nb_epoches, batch_size=batch_size,
-              validation_split=0.1)
-    classes = model.predict(X_test, batch_size=batch_size)
-    acc = np_utils.accuracy(np_utils.categorical_probas_to_classes(classes),
+              validation_split=0.1, callbacks=[earlystop])
+
+    probs = earlystop.model.predict(X_test, batch_size=batch_size)
+    classes = np_utils.categorical_probas_to_classes(probs)
+
+    acc = np_utils.accuracy(classes,
                             np_utils.categorical_probas_to_classes(Y_test))
     print('Test accuracy:', acc)
-    kappa = metrics.quadratic_weighted_kappa(classes, np_utils.categorical_probas_to_classes(Y_test))
+    kappa = metrics.quadratic_weighted_kappa(classes,
+                                             np_utils.categorical_probas_to_classes(Y_test))
     print('Test Kappa:', kappa)
     return acc
 
