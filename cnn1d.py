@@ -324,57 +324,41 @@ def cnn_other(Y_train, Y_test, nb_classes,
 def cnn_var_w2vembd(X_train, Y_train, X_test, Y_test, nb_classes,
                     maxlen,
                     nb_filter, batch_size, nb_epoches, optm):
-    """
-    - CNN-1d on 3d sensor which uses word2vec embedding
-    - MOT
-
-    :param <X, Y> train and test sets
-    :param nb_classes # of classes
-    :param maxlen max of n char in a sentence
-    :param nb_filter
-    :param filter_length
-    :param batch_size
-    :param nb_epoch
-    :param optm
-    :return:
-    """
     ngram_filters = [2, 5, 8]
-    nd_convs = ['conv_' + str(n) for n in ngram_filters]
-    nd_pools = ['pool_' + str(n) for n in ngram_filters]
-    nd_flats = ['flat_' + str(n) for n in ngram_filters]
 
-    model = Graph()
-    model.add_input(name='input', input_shape=(maxlen, 300), dtype='float')
+    input = Input(shape=(maxlen, 300,), name='input', dtype='float32')
 
+    convs = [None, None, None]
     # three CNNs
     for i, n_gram in enumerate(ngram_filters):
         pool_length = maxlen - n_gram + 1
-        model.add_node(Convolution1D(nb_filter=nb_filter,
-                                     filter_length=n_gram,
-                                     border_mode="valid",
-                                     activation="relu", input_shape=(maxlen, 300)),
-                       name=nd_convs[i], input='input')
-        model.add_node(MaxPooling1D(pool_length=pool_length),
-                       name=nd_pools[i], input=nd_convs[i])
-        model.add_node(Flatten(), name=nd_flats[i], input=nd_pools[i])
+        convs[i] = Convolution1D(nb_filter=nb_filter,
+                                 filter_length=n_gram,
+                                 border_mode="valid",
+                                 activation="relu")(input)
+        convs[i] = MaxPooling1D(pool_length=pool_length)(convs[i])
+        convs[i] = Flatten()(convs[i])
 
-    model.add_node(Dropout(0.5), name='dropout', inputs=nd_flats, merge_mode='concat')
-    model.add_node(Dense(nb_classes, activation='softmax'), name='softmax', input='dropout')
+    merged = merge([convs[0], convs[1], convs[2]], mode='concat', concat_axis=1)
+    merged = Dropout(0.5)(merged)
+    output = Dense(nb_classes, activation='softmax', name='output')(merged)
 
-    model.add_output(name='output', input='softmax')
-    model.compile(optm, loss={'output': 'categorical_crossentropy'})  # note Graph()'s diff syntax
-
-    # early stopping
+    model = Model(input, output)
+    model.compile(optm, loss={'output': 'categorical_crossentropy'})
     earlystop = EarlyStopping(monitor='val_loss', patience=1, verbose=1)
-    model.fit({'input': X_train, 'output': Y_train},
+    model.fit(X_train, Y_train,
               nb_epoch=nb_epoches, batch_size=batch_size,
               validation_split=0.1, callbacks=[earlystop])
-    # Graph doesn't have several arg/func existing in Sequential()
-    # - fit no show-accuracy
-    # - no predict_classes
-    classes = model.predict({'input': X_test}, batch_size=batch_size)['output'].argmax(axis=1)
-    acc = np_utils.accuracy(classes, np_utils.categorical_probas_to_classes(Y_test))  # accuracy only supports cla
-    print('Test Acc: ', acc)
+
+    probs = earlystop.model.predict(X_test, batch_size=batch_size)
+    classes = np_utils.categorical_probas_to_classes(probs)
+
+    acc = np_utils.accuracy(classes,
+                            np_utils.categorical_probas_to_classes(Y_test))
+    print('Test accuracy:', acc)
+    kappa = metrics.quadratic_weighted_kappa(classes,
+                                             np_utils.categorical_probas_to_classes(Y_test))
+    print('Test Kappa:', kappa)
     return acc
 
 

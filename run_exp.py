@@ -89,6 +89,9 @@ def test_ted_w2v():
                    100, 5, 50, 20, 'rmsprop')
 
 
+
+
+
 def pun_cv():
     maxlen = 20
     nb_words = 8000
@@ -504,11 +507,45 @@ def tpo_cv_cnn_other():
     print('after 10-fold cv:' + str(acc_cv))
 
 
+def argu_cv():
+    maxlen = 40
+    nb_words = 8000
+    embd_dim = 100
+
+    folds = ['VC048263',
+             'VC048408',
+             'VC084849',
+             'VC084851',
+             'VC084853',
+             'VC101537',
+             'VC101541',
+             'VC140094',
+             'VC207640',
+             'VC248479']
+
+    trains = ['data/Argu/csv/generic_' + str(fold) + '_training.csv' for fold in folds]
+    tests  = ['data/Argu/csv/generic_' + str(fold) + '_testing.csv' for fold in folds]
+    pairs = zip(trains, tests)
+
+    accs = []
+    for (train, test) in pairs:
+        print(train + '=>' + test)
+        X_train, Y_train, X_test, Y_test, nb_classes = load_csvs(train, test, nb_words, maxlen,
+                                                                 embd_type='self', w2v=None)
+
+        acc = cnn1d_selfembd(X_train, Y_train, X_test, Y_test, nb_classes,
+                             maxlen, nb_words, embd_dim,
+                             100, 5, 50, 20, 'rmsprop')
+        accs.append(acc)
+    acc_cv = np.mean(accs)
+    print('after 10-fold cv:' + str(acc_cv))
+
+
 
 if __name__=="__main__":
     # pun_cv()
-    pun_cv_cnnvar()
-    # pun_cv_w2v_cnnvar()
+    # pun_cv_cnnvar()
+    pun_cv_w2v_cnnvar()
     # ted_cv_cnnvar()
     # pun_cv_w2v()
     # ted_cv_w2v()
@@ -521,6 +558,9 @@ if __name__=="__main__":
     # tpo_cv_w2v_cnnvar()  0.43 acc just chance.
     # tpo_cv_cnnvar_other()  # ACC 0.5456
     # tpo_cv_cnn_other()
+
+    argu_cv()
+
 
 
 # tpo_cv_cnnvar  max_len 175 filter = 100 ACC 0.5464

@@ -23,3 +23,7 @@ data/TED/ted_data.zip
 data/tpov4/*.csv
 
 try.py
+
+data/Argu/tsv/generic_VC048263_testing.tsv
+
+*.tsv
