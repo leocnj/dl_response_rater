@@ -508,9 +508,9 @@ def tpo_cv_cnn_other():
 
 
 def argu_cv():
-    maxlen = 40
-    nb_words = 8000
-    embd_dim = 100
+    maxlen = 25
+    nb_words = 10000
+    embd_dim = 50
 
     folds = ['VC048263',
              'VC048408',
@@ -545,7 +545,7 @@ def argu_cv():
 if __name__=="__main__":
     # pun_cv()
     # pun_cv_cnnvar()
-    pun_cv_w2v_cnnvar()
+    # pun_cv_w2v_cnnvar()
     # ted_cv_cnnvar()
     # pun_cv_w2v()
     # ted_cv_w2v()
