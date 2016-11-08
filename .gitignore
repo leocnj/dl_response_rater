@@ -24,6 +24,6 @@ data/tpov4/*.csv
 
 try.py
 
-*.tsv
+data/Argu/tsv/generic_VC048263_testing.tsv
 
-*.py___jb_tmp___
+*.tsv
